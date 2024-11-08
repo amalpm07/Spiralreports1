@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import useSubmitAssessment from '../hooks/useSubmitAssessment';  // Import the custom hook
+import ReportGenerationModal from '../components/ReportGenerationModal';  // Import the modal component
+import { 
+ Plus
+} from 'lucide-react';
 const AssessmentQuiz = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -8,14 +12,18 @@ const AssessmentQuiz = () => {
   const [currentTool, setCurrentTool] = useState('');
   const [showToolsPage, setShowToolsPage] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isModalVisible, setIsModalVisible] = useState(false); // State to control modal visibility
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { assessment, accessToken } = location.state || {};  // Ensure accessToken is passed in location state
 
-  const { assessment } = location.state || {}; // Default to empty if no state is passed
-  console.log(assessment);
+  const questionSet = assessment?.questionSet || [];
+  const currentQuestion = questionSet[currentQuestionIndex];
 
-  // Function to get unique options, considering the level of each option
+  const totalSteps = questionSet.length + (showToolsPage ? 0 : 1); // Adjust total steps for progress
+  const progress = showToolsPage ? 100 : ((currentQuestionIndex + 1) / totalSteps) * 100;
+
   const getUniqueOptions = (options) => {
     const uniqueOptionsMap = new Map();
     options.forEach(option => {
@@ -26,10 +34,6 @@ const AssessmentQuiz = () => {
     });
     return Array.from(uniqueOptionsMap.values());
   };
-
-  const currentQuestion = assessment?.questionSet[currentQuestionIndex];
-  const totalSteps = assessment?.questionSet.length + 1;
-  const progress = showToolsPage ? 100 : ((currentQuestionIndex + 1) / totalSteps) * 100;
 
   const handleOptionToggle = (optionText) => {
     setSelectedOptions(prev => {
@@ -52,7 +56,6 @@ const AssessmentQuiz = () => {
     return (selectedOptions[currentQuestionIndex] || []).includes(optionText);
   };
 
-  // Check if at least one option is selected
   const isNextButtonDisabled = (selectedOptions[currentQuestionIndex] || []).length === 0;
 
   const handleNextQuestion = () => {
@@ -62,7 +65,7 @@ const AssessmentQuiz = () => {
     }
 
     setErrorMessage('');
-    if (currentQuestionIndex === assessment?.questionSet.length - 1) {
+    if (currentQuestionIndex === questionSet.length - 1) {
       setShowToolsPage(true);
     } else {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -79,10 +82,17 @@ const AssessmentQuiz = () => {
 
   const handleToolSubmit = (e) => {
     e.preventDefault();
-    if (currentTool.trim() && !tools.includes(currentTool.trim())) {
-      setTools([...tools, currentTool.trim()]);
-      setCurrentTool('');
+    if (currentTool.trim() === '') {
+      setErrorMessage('Tool name cannot be empty.');
+      return;
     }
+    if (tools.includes(currentTool.trim())) {
+      setErrorMessage('Tool already added.');
+      return;
+    }
+    setTools([...tools, currentTool.trim()]);
+    setCurrentTool('');
+    setErrorMessage('');
   };
 
   const handleToolDelete = (toolToDelete) => {
@@ -95,9 +105,40 @@ const AssessmentQuiz = () => {
     }
   };
 
-  const handleSubmit = () => {
-    navigate('/');
+  // Use the custom hook
+  const { submitAssessment, loading, error, success } = useSubmitAssessment();
+
+  const handleSubmit = async () => {
+    const purpose = assessment?.purpose === 'personal' ? 'SELF' : assessment?.purpose === 'client' ? 'CLIENT' : 'UNKNOWN';
+    const assessmentData = {
+      assessmentId: assessment?.id,
+      receipient: purpose,
+      name: assessment?.name,
+      compliance: assessment?.framework,
+      questions: questionSet.map((question, questionIndex) => {
+        const selectedOptionsForQuestion = (selectedOptions[questionIndex] || []).map(optionText => {
+          return question.options.find(option => option.text === optionText);
+        });
+  
+        return {
+          question: question.question,
+          considerScore: question.considerScore || true,
+          options: selectedOptionsForQuestion,  // Send only selected options
+        };
+      }),
+    };
+
+    try {
+      // Submit the assessment and tools
+      await submitAssessment(assessmentData, tools, accessToken);
+      
+      // After submission, show the modal
+      setIsModalVisible(true);
+    } catch (error) {
+      console.error('Error submitting evaluation:', error);
+    }
   };
+  
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 min-h-screen flex flex-col">
@@ -109,17 +150,14 @@ const AssessmentQuiz = () => {
               <span>{Math.round(progress)}%</span>
             </div>
             <div className="w-full h-1.5 bg-gray-100 rounded overflow-hidden">
-              <div 
-                className="h-full bg-red-500 transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+              <div className="h-full bg-red-500 transition-all duration-300" style={{ width: `${progress}%` }} />
             </div>
           </div>
 
-          {!showToolsPage && (
+          {!showToolsPage && currentQuestion && (
             <>
               <div className="text-sm font-semibold text-red-500 uppercase tracking-wider mb-2">
-                Question {currentQuestionIndex + 1} of {assessment?.questionSet.length}
+                Question {currentQuestionIndex + 1} of {questionSet.length}
               </div>
               <div className="text-xl font-semibold text-gray-900 mb-6 leading-relaxed">
                 {currentQuestion?.question}
@@ -132,7 +170,7 @@ const AssessmentQuiz = () => {
           {!showToolsPage ? (
             <div className="flex flex-col gap-3">
               {getUniqueOptions(currentQuestion?.options || []).map((option, index) => (
-                <div 
+                <div
                   key={index}
                   onClick={() => handleOptionToggle(option.text)}
                   className={`border rounded-lg cursor-pointer transition-all duration-200 overflow-hidden
@@ -140,14 +178,7 @@ const AssessmentQuiz = () => {
                 >
                   <div className="flex items-start p-4 gap-3">
                     <div className={`w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 relative transition-all duration-200
-                      ${isOptionSelected(option.text) ? 'bg-red-500 border-red-500' : 'border-gray-300'}`}
-                    >
-                      {isOptionSelected(option.text) && (
-                        <span className="absolute inset-0 flex items-center justify-center text-white text-sm">
-                          ✓
-                        </span>
-                      )}
-                    </div>
+                      ${isOptionSelected(option.text) ? 'bg-red-500 border-red-500' : 'border-gray-300'}`}></div>
                     <span className="text-gray-700 text-base leading-relaxed">{option.text}</span>
                   </div>
                 </div>
@@ -159,21 +190,38 @@ const AssessmentQuiz = () => {
               <p className="text-base text-gray-500 mb-8 leading-relaxed">
                 Please list all the tools that are currently being used in your organization for asset management and security.
               </p>
-              <input
-                type="text"
-                value={currentTool}
-                onChange={(e) => setCurrentTool(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a tool name and press Enter"
-                className="w-full p-3 rounded-lg border border-gray-300 mb-6 text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              />
-              <div className="flex flex-wrap gap-2 min-h-24">
+
+              {/* Tool Input with plus icon */}
+              <div className="relative w-full mb-6">
+                <input
+                  type="text"
+                  value={currentTool}
+                  onChange={(e) => setCurrentTool(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type a tool name"
+                  className="w-full p-3 rounded-lg border border-gray-300 text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+                {currentTool && (
+                  <button
+                    onClick={handleToolSubmit}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xl text-gray-500 hover:text-gray-700 transition-all duration-200"
+                    title="Add tool"
+                  >
+                    <Plus />
+                  </button>
+                )}
+              </div>
+
+              {/* Display tools */}
+              <div className="flex flex-wrap gap-4 min-h-8">
                 {tools.map((tool, index) => (
-                  <span key={index} className="inline-flex items-center bg-red-100 px-4 py-2 rounded-md text-sm text-red-900 font-medium">
+                  <span 
+                    key={index} 
+                    className="inline-flex items-center bg-red-100 px-6 py-3 rounded-lg text-base text-red-900 font-medium shadow-md mb-2">
                     {tool}
                     <button
                       onClick={() => handleToolDelete(tool)}
-                      className="ml-2 text-red-900 hover:text-red-800 text-lg p-1"
+                      className="ml-3 text-red-900 hover:text-red-800 text-xl p-1"
                       title="Remove tool"
                     >
                       ×
@@ -183,45 +231,46 @@ const AssessmentQuiz = () => {
               </div>
             </div>
           )}
+
+          {/* Error Message */}
+          {errorMessage && <div className="text-red-500 text-sm mb-4">{errorMessage}</div>}
         </div>
 
-        {/* Error Message */}
-        {errorMessage && (
-          <div className="text-red-500 text-sm mb-4">{errorMessage}</div>
-        )}
-      </div>
+        {/* Sticky Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+          <div className="max-w-4xl mx-auto flex justify-between gap-4">
+            <button
+              onClick={handlePreviousQuestion}
+              disabled={currentQuestionIndex === 0 && !showToolsPage}
+              className={`px-6 py-3 rounded-md text-sm font-medium border border-gray-300 transition-all duration-200
+                ${currentQuestionIndex === 0 && !showToolsPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+            >
+              Previous
+            </button>
 
-      {/* Sticky Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-        <div className="max-w-4xl mx-auto flex justify-between gap-4">
-          <button
-            onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0 && !showToolsPage}
-            className={`px-6 py-3 rounded-md text-sm font-medium border border-gray-300 transition-all duration-200
-              ${currentQuestionIndex === 0 && !showToolsPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
-          >
-            Previous
-          </button>
-          
-          {!showToolsPage ? (
-            <button
-              onClick={handleNextQuestion}
-              disabled={isNextButtonDisabled}
-              className={`px-6 py-3 rounded-md text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-all duration-200
-                ${isNextButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-3 rounded-md text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-all duration-200"
-            >
-              Submit
-            </button>
-          )}
+            {!showToolsPage ? (
+              <button
+                onClick={handleNextQuestion}
+                disabled={isNextButtonDisabled}
+                className={`px-6 py-3 rounded-md text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-all duration-200
+                  ${isNextButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                className="px-6 py-3 rounded-md text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-all duration-200"
+              >
+                {loading ? 'Submitting...' : 'Submit'}
+              </button>
+            )}
+           </div>
         </div>
       </div>
+
+      {/* ReportGenerationModal will automatically appear after successful submission */}
+      {isModalVisible && <ReportGenerationModal setIsVisible={setIsModalVisible} />}
     </div>
   );
 };

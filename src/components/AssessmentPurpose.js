@@ -30,7 +30,7 @@ function AssessmentPurpose({ onSelectPurpose }) {
           return (
             <button
               key={purpose.id}
-              onClick={() => onSelectPurpose(purpose.id)}
+              onClick={() => onSelectPurpose(purpose.id)}  // Trigger the onSelectPurpose handler
               className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-xl hover:border-red-500 hover:bg-red-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
               <div className="p-3 bg-red-100 rounded-full mb-4">

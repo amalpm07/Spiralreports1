@@ -163,10 +163,10 @@ function AuthPage() {
 
       {/* OTP Popup */}
       <OTPPopup 
-        isOpen={isOtpOpen} 
-        onClose={() => setIsOtpOpen(false)} 
-        onSubmit={handleOtpSubmit} 
-      />
+  isOpen={isOtpOpen} 
+  onClose={() => setIsOtpOpen(false)} 
+  onSubmit={handleOtpSubmit} 
+/>
 
       {/* Toast Container for notifications */}
       <ToastContainer />

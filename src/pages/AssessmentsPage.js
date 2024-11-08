@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Search,
   Filter,
@@ -15,57 +15,16 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { useAuth } from '../hooks/AuthContext'; // Import useAuth
+import useAssessments from '../hooks/useAssessments'; // Import your custom hook
 
 const AssessmentsPage = () => {
-  const [assessments, setAssessments] = useState([]); // Changed to an empty array to hold fetched data
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFramework, setSelectedFramework] = useState("all");
   const [selectedMaturity, setSelectedMaturity] = useState("all");
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState({});
-  const [loading, setLoading] = useState(false); // State for loading status
-  const [error, setError] = useState(null); // State for any potential error
+  
+  const { assessments, loading, error } = useAssessments(); // Using the custom hook to get the assessments
   const navigate = useNavigate(); // Initialize useNavigate hook
-  const { authData } = useAuth();
-  const access_token = authData?.accessToken; 
-
-  // Static mock data
-  useEffect(() => {
-    const mockData = [
-      {
-        id: 1,
-        title: 'Security Assessment',
-        name: 'Cybersecurity Assessment 2024',
-        framework: 'NIST',
-        tags: ['Compliance', 'Security'],
-        createdAt: '2024-10-01T10:00:00Z',
-        creditsUsed: 150,
-        maturityScore: 85,
-      },
-      {
-        id: 2,
-        title: 'Risk Assessment',
-        name: 'Risk Assessment 2024',
-        framework: 'ISO 31000',
-        tags: ['Risk', 'Management'],
-        createdAt: '2024-08-25T15:30:00Z',
-        creditsUsed: 120,
-        maturityScore: 65,
-      },
-      {
-        id: 3,
-        title: 'Compliance Assessment',
-        name: 'GDPR Compliance 2024',
-        framework: 'GDPR',
-        tags: ['Compliance', 'Legal'],
-        createdAt: '2024-09-15T09:00:00Z',
-        creditsUsed: 100,
-        maturityScore: 92,
-      },
-    ];
-
-    setAssessments(mockData); // Set the mock data
-
-  }, []); // Empty dependency array ensures this runs once on mount
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -110,14 +69,15 @@ const AssessmentsPage = () => {
     }));
   };
 
+  // Filter the assessments based on the selected filters
   const filteredAssessments = assessments.filter(assessment => {
     const matchesSearch = assessment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          assessment.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFramework = selectedFramework === "all" || assessment.framework === selectedFramework;
     const matchesMaturity = selectedMaturity === "all" ||
-      (selectedMaturity === "high" && assessment.maturityScore >= 80) ||
-      (selectedMaturity === "medium" && assessment.maturityScore >= 60 && assessment.maturityScore < 80) ||
-      (selectedMaturity === "low" && assessment.maturityScore < 60);
+      (selectedMaturity === "high" && assessment.maturity >= 80) ||
+      (selectedMaturity === "medium" && assessment.maturity >= 60 && assessment.maturity < 80) ||
+      (selectedMaturity === "low" && assessment.maturity < 60);
     
     return matchesSearch && matchesFramework && matchesMaturity;
   });
@@ -213,22 +173,20 @@ const AssessmentsPage = () => {
                 {filteredAssessments.map((assessment) => (
                   <tr key={assessment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{assessment.title}</div>
-                      <div className="text-sm text-gray-500">{assessment.name}</div>
+                    <div className="text-sm font-medium text-gray-900">{assessment.name}</div>
+                    
+                      <div className="text-sm text-gray-500">{assessment.title}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="mb-2 flex items-center gap-1.5">
                         <Shield className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="text-sm text-gray-900">{assessment.framework}</span>
+                        <span className="text-sm text-gray-900 uppercase">{assessment.compliance}</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {assessment.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                          >
-                            <Tag className="w-3 h-3" />
-                            {tag}
+                        {assessment.subdomainScore.map((score, idx) => (
+                          <span key={idx} className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                           
+                            {score.subdomain}
                           </span>
                         ))}
                       </div>
@@ -245,11 +203,23 @@ const AssessmentsPage = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col items-start">
-                        <span className={`text-lg font-bold mb-1 ${assessment.maturityScore >= 80 ? 'text-green-600' : assessment.maturityScore >= 60 ? 'text-yellow-600' : 'text-red-600'}`} >
-                          {assessment.maturityScore}% 
+                        <span
+                          className={`text-lg font-bold mb-1 ${
+                            assessment.maturity >= 80
+                              ? 'text-green-600'
+                              : assessment.maturity >= 60
+                              ? 'text-yellow-600'
+                              : 'text-red-600'
+                          }`}
+                        >
+                          {assessment.maturity}%
                         </span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getMaturityColor(assessment.maturityScore)}`} >
-                          {getMaturityLabel(assessment.maturityScore)}
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getMaturityColor(
+                            assessment.maturity
+                          )}`}
+                        >
+                          {getMaturityLabel(assessment.maturity)}
                         </span>
                       </div>
                     </td>

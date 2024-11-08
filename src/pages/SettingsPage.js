@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CreditCard, 
   Clock, 
@@ -11,19 +11,24 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
-import { useAuth } from '../hooks/AuthContext'; // Import useAuth
 
 import EditProfileModal from '../components/EditProfileModal'; // Import your modal component
+import useUserProfile from '../hooks/useUserProfile'; // Import the custom hook
 
 const SettingsPage = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // Initialize useNavigate
-  const { authData } = useAuth(); // Get auth data and logout function from context
-
-  const { firstName, email, credits, image } = location.state || {}; // Retrieve user data from state
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
 
+  // Fetch the user data using the custom hook
+  const { userData, loading, error } = useUserProfile();
+console.log(userData);
+
+  // If user data is available, use it; otherwise, fall back to location state or defaults
+  const { firstName, email, credits, profileImage } = userData || location.state || {};
+
+  // Default transactions for display (if needed)
   const [transactions] = useState([
     { id: 1, type: 'Credit Purchase', amount: 100, credits: 200, date: '2024-02-01' },
     { id: 2, type: 'Credit Purchase', amount: 45, credits: 100, date: '2024-01-15' },
@@ -37,6 +42,26 @@ const SettingsPage = () => {
       day: 'numeric'
     });
   };
+  const handleClick = () => {
+    // Navigate to the /invoices page
+    navigate('/invoices');
+  };
+  // Handle loading and error states
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span>Loading...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        <span>{error}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,10 +89,10 @@ const SettingsPage = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  {image ? <img src={image} alt="Profile" className="w-10 h-10 rounded-full" /> : <User className="w-5 h-5 text-gray-500" />}
+                  {profileImage ? <img src={profileImage} alt="Profile" className="w-10 h-10 rounded-full" /> : <User className="w-5 h-5 text-gray-500" />}
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">{authData.firstName || 'Guest User'}</div>
+                  <div className="font-medium text-gray-900">{firstName || 'Guest User'}</div>
                   <div className="text-sm text-gray-500">{email || 'guest@example.com'}</div>
                 </div>
               </div>
@@ -121,13 +146,16 @@ const SettingsPage = () => {
                 <div className="text-xl font-bold text-gray-900">$145.00</div>
               </div>
             </div>
-            <button className="w-full flex items-center justify-between text-sm text-gray-600 border rounded-lg p-3 hover:border-red-200">
-              <div className="flex items-center gap-2">
-                <Receipt className="w-4 h-4" />
-                View Invoices
-              </div>
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <button
+      onClick={handleClick}
+      className="w-full flex items-center justify-between text-sm text-gray-600 border rounded-lg p-3 hover:border-red-200"
+    >
+      <div className="flex items-center gap-2">
+        <Receipt className="w-4 h-4" />
+        View Invoices
+      </div>
+      <ChevronRight className="w-4 h-4" />
+    </button>
           </div>
 
           {/* Recent Transactions */}
@@ -174,7 +202,7 @@ const SettingsPage = () => {
       <EditProfileModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        userData={{ firstName, email, credits, image }}
+        userData={userData} // Pass the user data to the modal
       />
     </div>
   );

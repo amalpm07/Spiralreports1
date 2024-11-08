@@ -1,18 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Separator } from '../ui/Separator';
 import { FaGoogle } from 'react-icons/fa'; // Import the Google icon
+import ForgotPasswordModal from '../ForgotPasswordModal'; // Import the modal
 
 const LoginForm = ({ formData, onInputChange, onSubmit, errorMessage }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleGoogleLogin = () => {
-    // Implement Google login logic here
-    console.log("Google login clicked");
+    console.log('Google login clicked');
   };
 
   const handleForgotPassword = () => {
-    // Implement the forgot password logic here
-    console.log("Forgot Password clicked");
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
@@ -39,12 +44,13 @@ const LoginForm = ({ formData, onInputChange, onSubmit, errorMessage }) => {
             onChange={onInputChange}
           />
           <Button
-            variant="ghost"
-            className="bg-red-600 text-white transition-colors duration-300 hover:bg-red-500"
-            type="submit"
-          >
-            Login
-          </Button>
+  variant="ghost"
+  className="bg-red-300 text-white transition-colors duration-300 hover:bg-[#EF4444]"
+  type="submit"
+>
+  Login
+</Button>
+
         </div>
       </form>
       <div className="text-center mt-4">
@@ -56,9 +62,13 @@ const LoginForm = ({ formData, onInputChange, onSubmit, errorMessage }) => {
           Forgot Password?
         </button>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal isOpen={isModalOpen} onClose={handleCloseModal} />
+
       <Separator />
       <Button variant="outline" className="flex items-center justify-center gap-2" onClick={handleGoogleLogin}>
-        <FaGoogle className="text-lg" /> {/* Use the Google icon */}
+        <FaGoogle className="text-lg" />
         Sign in with Google
       </Button>
     </>

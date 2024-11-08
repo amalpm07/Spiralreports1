@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { 
   Lock,
   Eye,
@@ -8,7 +8,6 @@ import {
   XCircle
 } from 'lucide-react';
 
-// Separate component for password requirements to prevent re-renders
 const PasswordRequirement = React.memo(({ text, isMet }) => (
   <div className="flex items-center gap-2">
     {isMet ? (
@@ -16,13 +15,12 @@ const PasswordRequirement = React.memo(({ text, isMet }) => (
     ) : (
       <XCircle className="w-4 h-4 text-gray-300" />
     )}
-<span className={`text-sm ${isMet ? 'text-gray-900' : 'text-gray-500'}`}>
+   <span className={`text-sm ${isMet ? 'text-gray-900' : 'text-gray-500'}`}>
 {text}
     </span>
   </div>
 ));
 
-// Separate input component with stable callbacks
 const PasswordInput = React.memo(({ label, name, value, showPassword, onToggleVisibility, onChangeValue }) => {
   const handleChange = useCallback((e) => {
     onChangeValue(name, e.target.value);
@@ -63,7 +61,19 @@ const PasswordInput = React.memo(({ label, name, value, showPassword, onToggleVi
   );
 });
 
-const PasswordChangeScreen = () => {
+const PasswordScreen = () => {
+  // Get token from URL if it exists
+  const [resetToken, setResetToken] = useState(null);
+  const isResetMode = Boolean(resetToken);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      setResetToken(token);
+    }
+  }, []);
+
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -78,7 +88,6 @@ const PasswordChangeScreen = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Memoized callbacks for input handling
   const handleInputChange = useCallback((name, value) => {
     setFormData(prev => ({
       ...prev,
@@ -93,7 +102,6 @@ const PasswordChangeScreen = () => {
     }));
   }, []);
 
-  // Memoized requirements calculation
   const requirements = React.useMemo(() => ({
     length: formData.newPassword.length >= 8,
     uppercase: /[A-Z]/.test(formData.newPassword),
@@ -108,7 +116,23 @@ const PasswordChangeScreen = () => {
     setIsLoading(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (isResetMode) {
+        // Reset password API call
+        const resetData = {
+          password: formData.newPassword,
+          token: resetToken
+        };
+        console.log('Reset password data:', resetData);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else {
+        // Update password API call
+        const updateData = {
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword
+        };
+        console.log('Update password data:', updateData);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
       console.log('Password changed successfully');
     } catch (error) {
       console.error('Error changing password:', error);
@@ -131,7 +155,9 @@ const PasswordChangeScreen = () => {
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
           </button>
-          <h1 className="text-2xl font-bold text-white">Change Password</h1>
+          <h1 className="text-2xl font-bold text-white">
+            {isResetMode ? 'Reset Password' : 'Change Password'}
+          </h1>
         </div>
       </div>
 
@@ -143,21 +169,25 @@ const PasswordChangeScreen = () => {
                 <Lock className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Update Your Password</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {isResetMode ? 'Set New Password' : 'Update Your Password'}
+                </h2>
                 <p className="text-sm text-gray-500">Please ensure your new password meets all requirements</p>
               </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
-                <PasswordInput 
-                  label="Current Password"
-                  name="currentPassword"
-                  value={formData.currentPassword}
-                  showPassword={showPasswords.currentPassword}
-                  onToggleVisibility={togglePasswordVisibility}
-                  onChangeValue={handleInputChange}
-                />
+                {!isResetMode && (
+                  <PasswordInput 
+                    label="Current Password"
+                    name="currentPassword"
+                    value={formData.currentPassword}
+                    showPassword={showPasswords.currentPassword}
+                    onToggleVisibility={togglePasswordVisibility}
+                    onChangeValue={handleInputChange}
+                  />
+                )}
 
                 <PasswordInput 
                   label="New Password"
@@ -201,7 +231,7 @@ const PasswordChangeScreen = () => {
                   disabled={!allRequirementsMet || isLoading}
                   className="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isLoading ? 'Updating...' : 'Update Password'}
+                  {isLoading ? 'Processing...' : (isResetMode ? 'Reset Password' : 'Update Password')}
                 </button>
               </div>
             </form>
@@ -212,4 +242,4 @@ const PasswordChangeScreen = () => {
   );
 };
 
-export default PasswordChangeScreen;
+export default PasswordScreen;

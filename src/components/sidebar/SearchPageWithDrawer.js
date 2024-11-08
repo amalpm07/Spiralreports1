@@ -10,7 +10,8 @@ import {
   Settings, 
   CreditCard,
   FileText,
-  User
+  User,
+  Home
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'; 
 import { useAuth } from '../../hooks/AuthContext'; // Import useAuth
@@ -35,6 +36,7 @@ function SearchPageWithDrawer() {
   };
 
   const navItems = [
+    {icon:Home,label:"Dashboard",badge:null,path:'/dashboard'},
     { icon: Search, label: "Search Assessments", badge: null, path: '/search' },
     { icon: List, label: "All Assessments", badge: null, path: '/assessmentsPage' },
     { icon: FileText, label: "Draft Assessments", badge: "3", path: '/drafts' },

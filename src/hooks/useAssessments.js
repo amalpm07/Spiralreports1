@@ -1,17 +1,15 @@
-// useAssessments.js
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/AuthContext';
 
+// Custom Hook to Fetch Assessment Data
 const useAssessments = () => {
   const [assessments, setAssessments] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { authData } = useAuth();
   const access_token = authData?.accessToken;
   useEffect(() => {
     const fetchAssessments = async () => {
-      setLoading(true);
-      setError(null);
       try {
         const response = await fetch('https://app.spiralreports.com/api/evaluations?page=1&limit=10&orderBy=desc', {
           method: 'GET',
@@ -21,21 +19,22 @@ const useAssessments = () => {
           }
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch assessments');
-        }
-
         const data = await response.json();
-        setAssessments(data.evaluations || []);
-      } catch (error) {
-        setError(error.message);
+
+        if (response.ok && data.statusCode === 200) {
+          setAssessments(data.data.data); // Store the fetched assessments data
+        } else {
+          setError(data.message || 'Failed to fetch data');
+        }
+      } catch (err) {
+        setError(err.message || 'Something went wrong');
       } finally {
-        setLoading(false);
+        setLoading(false); // Set loading to false once data is fetched or an error occurs
       }
     };
 
     fetchAssessments();
-  }, [access_token]);
+  }, [access_token]); // Re-run the effect if access_token changes
 
   return { assessments, loading, error };
 };

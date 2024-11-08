@@ -48,6 +48,7 @@ const CreateAccountForm = () => {
     confirmPassword: '',
     workRole: '',
     otherWorkRole: '',
+    country: '', // New state to capture country
   });
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -97,7 +98,10 @@ const CreateAccountForm = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...formData, email }),
+        body: JSON.stringify({
+          ...formData, // Spread the formData, including the country
+          email,
+        }),
       });
 
       if (!response.ok) {
@@ -131,10 +135,11 @@ const CreateAccountForm = () => {
             <Input id="middleName" placeholder="Middle Name" value={formData.middleName} onChange={handleInputChange} />
             <Input id="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} />
             <div className="flex items-center">
-              <PhoneInput
+            <PhoneInput
                 defaultCountry="US"
                 value={formData.phone}
                 onChange={(value) => setFormData((prev) => ({ ...prev, phone: value }))}
+                onCountryChange={(country) => setFormData((prev) => ({ ...prev, country }))}
                 className="w-full border rounded p-2"
                 placeholder="Phone Number"
                 international
