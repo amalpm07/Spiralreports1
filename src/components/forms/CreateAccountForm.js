@@ -51,6 +51,7 @@ const CreateAccountForm = () => {
     country: '', // New state to capture country
   });
   const [errorMessage, setErrorMessage] = useState('');
+  const [signupResponse, setSignupResponse] = useState(null); // New state for signup response
 
   const handleInputChange = (event) => {
     const { id, value } = event.target;
@@ -110,14 +111,30 @@ const CreateAccountForm = () => {
       }
 
       const data = await response.json();
-      login(data); // Pass the response to login function to set user in AuthContext
-      navigate('/assessment'); // Navigate to the next page after successful signup
+      const { access_token, refresh_token, user } = data.data; // Access data inside the response
+
+      // Store the response in the state
+      setSignupResponse(data.data);
+
+      // Optionally, store user data and tokens in context (using the login function from useAuth)
+      login({ access_token, refresh_token, user });
+
+      // After login, navigate to the assessment page and pass the user data and tokens
+      navigate('/login', {
+        state: {
+          signupResponse, // Pass the signupResponse to the next page
+          user,            // Pass the user object
+          access_token,    // Pass the access token
+          refresh_token,   // Pass the refresh token
+        },
+      });
 
     } catch (error) {
       setErrorMessage(error.message);
     }
   };
 
+  
   return (
     <div className="flex flex-col space-y-2 text-center">
       <h1 className="text-2xl font-semibold tracking-tight">Create an Account</h1>
@@ -135,7 +152,7 @@ const CreateAccountForm = () => {
             <Input id="middleName" placeholder="Middle Name" value={formData.middleName} onChange={handleInputChange} />
             <Input id="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} />
             <div className="flex items-center">
-            <PhoneInput
+              <PhoneInput
                 defaultCountry="US"
                 value={formData.phone}
                 onChange={(value) => setFormData((prev) => ({ ...prev, phone: value }))}
@@ -204,6 +221,7 @@ const CreateAccountForm = () => {
   );
 };
 
+// Password checker component remains unchanged
 const PasswordCheckerWithConfirm = ({ password, setPassword, confirmPassword, setConfirmPassword }) => {
   const [isPasswordStrong, setIsPasswordStrong] = useState(false);
   const [validationResults, setValidationResults] = useState({
@@ -214,6 +232,7 @@ const PasswordCheckerWithConfirm = ({ password, setPassword, confirmPassword, se
     specialChar: false,
   });
   const [passwordMatch, setPasswordMatch] = useState(false);
+
   const checkPasswordStrength = (password) => {
     const checks = {
       length: password.length >= 8,
@@ -235,13 +254,13 @@ const PasswordCheckerWithConfirm = ({ password, setPassword, confirmPassword, se
     if (confirmPassword) {
       setPasswordMatch(confirmPassword === newPassword);
     }
-  }
+  };
 
   const handleConfirmPasswordChange = (e) => {
     const confirmValue = e.target.value;
     setConfirmPassword(confirmValue);
     setPasswordMatch(confirmValue === password);
-  }
+  };
 
   return (
     <div className="max-w-md space-y-4">
@@ -254,7 +273,7 @@ const PasswordCheckerWithConfirm = ({ password, setPassword, confirmPassword, se
           placeholder="Enter password"
         />
         <div className="flex flex-col mt-2 text-red-600">
-        {!isPasswordStrong && (
+          {!isPasswordStrong && (
             <>
               <div className="flex items-center">
                 <span className={validationResults.length ? 'text-green-600' : 'text-red-600'}>✓</span>
@@ -279,21 +298,21 @@ const PasswordCheckerWithConfirm = ({ password, setPassword, confirmPassword, se
             </>
           )}
           {isPasswordStrong && (
-  <div className="space-y-2">
-    <input
-      type="password"
-      value={confirmPassword}
-      onChange={handleConfirmPasswordChange}
-      className="w-full px-3 py-2 border rounded-md"
-      placeholder="Confirm password"
-    />
-    {confirmPassword && (
-      <p className={`text-sm ${passwordMatch ? 'text-green-600' : 'text-red-600'}`}>
-        {passwordMatch ? 'Passwords match!' : 'Passwords do not match'}
-      </p>
-    )}
-  </div>
-)}
+            <div className="space-y-2">
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={handleConfirmPasswordChange}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Confirm password"
+              />
+              {confirmPassword && (
+                <p className={`text-sm ${passwordMatch ? 'text-green-600' : 'text-red-600'}`}>
+                  {passwordMatch ? 'Passwords match!' : 'Passwords do not match'}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,5 +1,4 @@
-// src/App.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/AuthContext'; // Import your AuthProvider and useAuth
 import AuthPage from './pages/AuthPage';
@@ -19,28 +18,28 @@ import PaymentSuccessScreen from './components/PaymentSuccessScreen';
 import Dashboard from './components/Dashboard';
 import PasswordChangeScreen from './components/PasswordChangeScreen';
 import AllInvoicePage from './pages/AllInvoicePage';
+
 function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/" element={<AuthRedirect />} />
-        {/* <Route path='/' element={<HomePage/>}/> */}
         <Route path="/login" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />
+        {/* Protected Routes */}
         <Route path="/assessment" element={<ProtectedRoute component={Assessment} />} />
         <Route path="/add-credits" element={<ProtectedRoute component={AddCredit} />} />
-        <Route path='/settings' element={<Settings/>}/>
-        <Route path='/assessmentsPage' element={<AssessmentsPage/>}/>
-        <Route path='/assessmentsquiz' element={<AssessmentQuiz/>}/>
-        <Route path='/purchaseCancel' element={<PaymentCancelledScreen/>}/>
-        <Route path='/purchaseFailed' element={<PaymentFailedScreen/>}/>
-        <Route path='/purchaseSuccess' element={<PaymentSuccessScreen/>}/>
-        <Route path='/dashboard' element={<Dashboard/>}/>
-        <Route path='/reset-password' element={<PasswordChangeScreen/>}/>
-        <Route path='/invoices' element={<AllInvoicePage/>}/>
-
+        <Route path='/settings' element={<ProtectedRoute component={Settings} />} />
+        <Route path='/assessmentsPage' element={<ProtectedRoute component={AssessmentsPage} />} />
+        <Route path='/assessmentsquiz' element={<ProtectedRoute component={AssessmentQuiz} />} />
+        <Route path='/purchaseCancel' element={<PaymentCancelledScreen />} />
+        <Route path='/purchaseFailed' element={<PaymentFailedScreen />} />
+        <Route path='/purchaseSuccess' element={<PaymentSuccessScreen />} />
+        <Route path='/dashboard' element={<ProtectedRoute component={Dashboard} />} />
+        <Route path='/reset-password' element={<PasswordChangeScreen />} />
+        <Route path='/invoices' element={<ProtectedRoute component={AllInvoicePage} />} />
       </Routes>
-      <ToastNotifications />    
+      <ToastNotifications />
       <ToastContainer /> {/* Include ToastContainer for notifications */}
     </AuthProvider>
   );
@@ -48,9 +47,21 @@ function App() {
 
 // Component to handle redirection based on auth state
 function AuthRedirect() {
-  const { authData } = useAuth(); // Get auth data from context
+  const { authData, isLoading } = useAuth(); // Get auth data from context
+  const [loading, setLoading] = useState(true);
 
-  // If logged in, redirect to assessment page
+  useEffect(() => {
+    // We can set a loading state to avoid any flash of unstyled content (FOUC)
+    if (authData !== null || !isLoading) {
+      setLoading(false); // If authData is available or if the loading state is done, stop loading
+    }
+  }, [authData, isLoading]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Optionally add a loading screen or spinner here
+  }
+
+  // If logged in, redirect to the assessment page
   if (authData) {
     return <Navigate to="/assessment" replace />;
   }

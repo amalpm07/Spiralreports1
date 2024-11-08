@@ -7,7 +7,9 @@ function useAssessmentDetails(id) {
   const [error, setError] = useState(null);
   const { authData } = useAuth();
   const access_token = authData?.accessToken;
-
+  const [signupResponse, setSignupResponse] = useState(null);
+  console.log(signupResponse);
+  
   useEffect(() => {
     if (!id) return;
 
