@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "../components/ui/Button";
 import LoginForm from "../components/forms/LoginForm";
 import CreateAccountForm from "../components/forms/CreateAccountForm";
@@ -163,10 +163,10 @@ function AuthPage() {
 
       {/* OTP Popup */}
       <OTPPopup 
-  isOpen={isOtpOpen} 
-  onClose={() => setIsOtpOpen(false)} 
-  onSubmit={handleOtpSubmit} 
-/>
+      isOpen={isOtpOpen} 
+      onClose={() => setIsOtpOpen(false)} 
+      onSubmit={handleOtpSubmit} 
+      />
 
       {/* Toast Container for notifications */}
       <ToastContainer />

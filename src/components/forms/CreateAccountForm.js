@@ -51,7 +51,6 @@ const CreateAccountForm = () => {
     country: '', // New state to capture country
   });
   const [errorMessage, setErrorMessage] = useState('');
-  const [signupResponse, setSignupResponse] = useState(null); // New state for signup response
 
   const handleInputChange = (event) => {
     const { id, value } = event.target;
@@ -92,7 +91,7 @@ const CreateAccountForm = () => {
   const handleSignup = async (event) => {
     event.preventDefault();
     setErrorMessage('');
-
+  
     try {
       const response = await fetch('https://app.spiralreports.com/api/users/signup', {
         method: 'POST',
@@ -104,36 +103,33 @@ const CreateAccountForm = () => {
           email,
         }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Signup failed');
       }
-
+  
       const data = await response.json();
       const { access_token, refresh_token, user } = data.data; // Access data inside the response
-
-      // Store the response in the state
-      setSignupResponse(data.data);
-
-      // Optionally, store user data and tokens in context (using the login function from useAuth)
+  console.log(access_token);
+  
+      // Store user data and tokens in context (using the login function from useAuth)
       login({ access_token, refresh_token, user });
-
+  
       // After login, navigate to the assessment page and pass the user data and tokens
-      navigate('/login', {
+      navigate('/assessment', {
         state: {
-          signupResponse, // Pass the signupResponse to the next page
           user,            // Pass the user object
           access_token,    // Pass the access token
           refresh_token,   // Pass the refresh token
         },
       });
-
+  
     } catch (error) {
       setErrorMessage(error.message);
     }
   };
-
+  
   
   return (
     <div className="flex flex-col space-y-2 text-center">

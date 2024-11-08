@@ -7,7 +7,8 @@ const useAssessments = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { authData } = useAuth();
-  const access_token = authData?.accessToken;
+  
+  const access_token = authData?.access_token || authData?.accessToken;
   useEffect(() => {
     const fetchAssessments = async () => {
       try {

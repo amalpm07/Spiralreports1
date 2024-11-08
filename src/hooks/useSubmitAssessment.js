@@ -11,7 +11,7 @@ const useSubmitAssessment = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const { authData } = useAuth();
-  const access_token = authData?.accessToken;
+  const access_token = authData?.access_token || authData?.accessToken;
   const submitAssessment = async (assessmentData, toolsUsed) => {
     setLoading(true);
     setError(null);

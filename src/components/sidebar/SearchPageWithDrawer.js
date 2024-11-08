@@ -20,23 +20,24 @@ function SearchPageWithDrawer() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const navigate = useNavigate(); 
   const { authData, logout } = useAuth(); // Get auth data and logout function from context
-// console.log(authData);
 
-  // Default user profile if authData is not available
-  const userProfile = authData ? {
-    name: authData.firstName,
-    email: authData.email,
-    credits: authData.credits,
-    image: authData.profileImage // Assuming image URL is stored in authData
+
+  // Handle user profile based on whether `authData` is in the newer or older format
+  const userProfile = authData?.user ? {  // If `user` exists (new format)
+    name: `${authData.user.firstName} ${authData.user.lastName}`,
+    email: authData.user.email,
+    credits: authData.user.credits || 0,  // Ensure credits default to 0 if not available
+    image: authData.user.profileImage || '/api/placeholder/80/80', // Default placeholder if no image URL
   } : {
-    name: "Guest User",
-    email: "guest@example.com",
-    credits: 0,
-    image: "/api/placeholder/80/80"
+    // Older format - data directly on `authData`
+    name: `${authData.firstName || 'Guest'} ${authData.lastName || ''}`,
+    email: authData.email || 'guest@example.com',
+    credits: authData.credits || 0,
+    image: authData.profileImage || '/api/placeholder/80/80',  // Fallback placeholder image
   };
 
   const navItems = [
-    {icon:Home,label:"Dashboard",badge:null,path:'/dashboard'},
+    {icon:Home, label:"Dashboard", badge:null, path:'/dashboard'},
     { icon: Search, label: "Search Assessments", badge: null, path: '/search' },
     { icon: List, label: "All Assessments", badge: null, path: '/assessmentsPage' },
     { icon: FileText, label: "Draft Assessments", badge: "3", path: '/drafts' },
@@ -85,8 +86,8 @@ function SearchPageWithDrawer() {
               </button>
             </div>
             <div className="flex-1">
-            <h3 className="font-semibold text-white text-lg uppercase">{userProfile.name}</h3>
-            <p className="text-red-100 text-sm">{userProfile.email}</p>
+              <h3 className="font-semibold text-white text-lg uppercase">{userProfile.name}</h3>
+              <p className="text-red-100 text-sm">{userProfile.email}</p>
             </div>
           </div>
         </div>

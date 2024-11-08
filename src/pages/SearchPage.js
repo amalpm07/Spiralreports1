@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ArrowRight, Bookmark, BookmarkCheck, Book, Users, Clock, ChevronRight } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
+import { Search, ArrowRight } from 'lucide-react';
 import AssessmentCard from '../components/cards/AssessmentCard';
-import SearchBar from '../components/cards/SearchBar';
 import SearchPageWithDrawer from '../components/sidebar/SearchPageWithDrawer';
 import { useAuth } from '../hooks/AuthContext';
 import { useLocation } from 'react-router-dom';
@@ -17,7 +15,6 @@ function SearchPage() {
   const access_token = location.state?.access_token || authData?.accessToken;  // Priority to location.state
 
   // Log access_token to see which one is being used
-  console.log("Access Token:", access_token);
 
   // Organize assessments into a 3x2 grid structure
   const toggleSave = (assessmentId) => {

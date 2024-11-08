@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext'; // To get access token
 
@@ -6,16 +7,18 @@ const useUserProfile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const access_token = authData?.access_token || authData?.accessToken;
+  console.log(access_token);
+  
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!authData?.accessToken) return; // Ensure token is available
+       // Ensure token is available
 
       try {
         const response = await fetch('https://app.spiralreports.com/api/users/profile', {
           method: 'GET',
           headers: {
-            Authorization: `Bearer ${authData.accessToken}`,
+            Authorization: `Bearer ${authData.access_token}`,
           },
         });
         

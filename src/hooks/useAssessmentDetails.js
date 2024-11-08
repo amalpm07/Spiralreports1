@@ -6,12 +6,15 @@ function useAssessmentDetails(id) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { authData } = useAuth();
-  const access_token = authData?.accessToken;
-  const [signupResponse, setSignupResponse] = useState(null);
-  console.log(signupResponse);
   
+  const access_token = authData?.access_token || authData?.accessToken;
+
+  // Check if the access_token exists
   useEffect(() => {
-    if (!id) return;
+    if (!id || !access_token) {
+      setError('No assessment ID or access token available');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -51,6 +54,7 @@ function useAssessmentDetails(id) {
     fetchAssessmentDetails();
   }, [id, access_token]);  // Effect runs whenever `id` or `access_token` changes
 
+  // Return all the relevant data
   return { assessmentDetails, loading, error };
 }
 

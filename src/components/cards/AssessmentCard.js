@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { Bookmark, BookmarkCheck, Book, Users, Clock, ChevronRight } from 'lucide-react';
 import AssessmentModal from '../AssessmentModal'; // Import the AssessmentModal

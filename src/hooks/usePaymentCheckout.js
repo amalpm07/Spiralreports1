@@ -3,7 +3,6 @@ import { useAuth } from '../hooks/AuthContext'; // Importing the useAuth hook
 
 const usePaymentCheckout = () => {
   const { authData } = useAuth(); // Get auth data from context
-  const access_token = authData?.accessToken; // Extract access token from authData
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [checkoutUrl, setCheckoutUrl] = useState(null);
@@ -13,11 +12,7 @@ const usePaymentCheckout = () => {
     setLoading(true);
     setError(null);
 
-    if (!access_token) {
-      setError('Authentication token is missing. Please log in again.');
-      setLoading(false);
-      return;
-    }
+    const access_token = authData?.access_token || authData?.accessToken;
 
     try {
       const response = await fetch('https://app.spiralreports.com/api/payments/checkout', {

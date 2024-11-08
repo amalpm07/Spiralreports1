@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // src/context/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // Use navigate in the context of the existing Router
