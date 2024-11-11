@@ -3,18 +3,22 @@ import { Search, ArrowRight } from 'lucide-react';
 import AssessmentCard from '../components/cards/AssessmentCard';
 import SearchPageWithDrawer from '../components/sidebar/SearchPageWithDrawer';
 import { useAuth } from '../hooks/AuthContext';
-import { useLocation } from 'react-router-dom';
-
+import { useLocation, useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [savedAssessments, setSavedAssessments] = useState([]);
   const [assessments, setAssessments] = useState([]); // Initialize as an empty array
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { authData } = useAuth();
+  const { authData, refreshToken } = useAuth();
   const location = useLocation(); // To access location.state for access token passed from signup
-  const access_token = location.state?.access_token || authData?.accessToken;  // Priority to location.state
+  const navigate = useNavigate(); // For navigation
+
+  // Get the access token from either location state or authData
+  const access_token = location.state?.access_token || authData?.accessToken;
 
   // Log access_token to see which one is being used
+  console.log('Access Token:', access_token);
 
   // Organize assessments into a 3x2 grid structure
   const toggleSave = (assessmentId) => {
@@ -24,46 +28,95 @@ function SearchPage() {
   };
 
   useEffect(() => {
+    // If access_token exists, verify it's not expired
     if (access_token) {
-      const fetchAssessments = async () => {
-        try {
-          const response = await fetch('https://app.spiralreports.com/api/assessments/all?page=1&limit=10&orderBy=desc', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${access_token}`,
-              'Content-Type': 'application/json',
-            },
+      const checkTokenExpiry = () => {
+        const isExpired = checkTokenExpiryFunction(access_token);
+        if (isExpired) {
+          // If the token is expired, attempt to refresh the token
+          refreshToken().then(() => {
+            // Refresh is successful, proceed to fetch assessments
+            fetchAssessments();
+          }).catch(() => {
+            // Refresh failed, log out the user and redirect to login page
+            logoutAndRedirect();
           });
-
-          if (!response.ok) {
-            throw new Error('Failed to fetch assessments');
-          }
-
-          const data = await response.json();
-          const formattedAssessments = data.data.results.map((assessment) => ({
-            id: assessment.id,
-            name: assessment.title,
-            tags: assessment.tags,
-            questionCount: assessment.questionCount,
-            completionCount: assessment.evaluationCount || 0,
-            duration: 'N/A',
-            credits: assessment.credReq || 0,
-          })).sort((a, b) => b.completionCount - a.completionCount);
-          
-          setAssessments(formattedAssessments);
-        } catch (error) {
-          console.error('Error fetching assessments:', error);
+        } else {
+          // If token is valid, proceed to fetch assessments
+          fetchAssessments();
         }
       };
 
-      fetchAssessments();
+      checkTokenExpiry();
     }
-  }, [access_token]); // Effect will re-run if access_token changes
+  }, [access_token]); // Re-run when access_token changes
+
+  // Function to check if the JWT token is expired
+  const checkTokenExpiryFunction = (token) => {
+    try {
+      const { exp } = JSON.parse(atob(token.split('.')[1])); // Decode the JWT payload
+      const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+      return exp < currentTime; // Return true if the token is expired
+    } catch (e) {
+      console.error('Error checking token expiry:', e);
+      return true; // If decoding fails, assume expired
+    }
+  };
+
+  const fetchAssessments = async () => {
+    try {
+      const response = await fetch('https://app.spiralreports.com/api/assessments/all?page=1&limit=10&orderBy=desc', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch assessments');
+      }
+
+      const data = await response.json();
+      const formattedAssessments = data.data.results.map((assessment) => ({
+        id: assessment.id,
+        name: assessment.title,
+        tags: assessment.tags,
+        questionCount: assessment.questionCount,
+        completionCount: assessment.evaluationCount || 0,
+        duration: 'N/A',
+        credits: assessment.credReq || 0,
+      })).sort((a, b) => b.completionCount - a.completionCount);
+      
+      setAssessments(formattedAssessments);
+    } catch (error) {
+      console.error('Error fetching assessments:', error);
+    }
+  };
+
+  // Helper function to log out and navigate to the login page
+  const logoutAndRedirect = () => {
+    // Clear local data and state
+    localStorage.removeItem('authData');
+    setSavedAssessments([]);
+    setAssessments([]);
+    navigate('/login'); // Redirect to login page
+  };
+
+  // Filter assessments based on search query
+  const filteredAssessments = assessments.filter((assessment) => {
+    const lowercasedSearchQuery = searchQuery.toLowerCase();
+    return (
+      assessment.name.toLowerCase().includes(lowercasedSearchQuery) ||
+      assessment.tags.some((tag) => tag.toLowerCase().includes(lowercasedSearchQuery))
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
+    <Header/>
       {/* Header Section */}
-      <div className="bg-red-500 pt-4 pb-4">
+      <div className="bg-red-500 pt-20 pb-4">
         <div className="max-w-7xl mx-auto px-8 flex justify-between items-center">
           <button
             onClick={() => setIsDrawerOpen(true)}
@@ -71,12 +124,16 @@ function SearchPage() {
           >
             {/* Sidebar Icon */}
           </button>
+
         </div>
+
       </div>
-      <SearchPageWithDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+      {/* <SearchPageWithDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} /> */}
 
       <div className="bg-red-500 pt-8 pb-16">
         <div className="max-w-7xl mx-auto px-8">
+        <h1 className="text-2xl font-bold text-white">Begin Assessment</h1>
+
           {/* Add additional UI elements if needed */}
         </div>
       </div>
@@ -108,8 +165,8 @@ function SearchPage() {
 
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {assessments.length > 0 ? (
-                  assessments.map((assessment) => (
+                {filteredAssessments.length > 0 ? (
+                  filteredAssessments.map((assessment) => (
                     <AssessmentCard
                     key={assessment.id}
                     assessment={assessment}
@@ -126,7 +183,7 @@ function SearchPage() {
           </div>
         </div>
       </div>
-    </div>
+    </div> 
   );
 }
 

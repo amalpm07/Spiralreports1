@@ -8,34 +8,19 @@ import {
   CreditCard,
   FileCheck
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';  // Import useNavigate from react-router-dom
+import useTransactions from '../hooks/useTransactions';
+import Header from '../components/Header';
 
-const  AllInvoicePage = () => {
-  const [transactions] = useState([
-    {
-      _id: "672ca1ea042c314ec9f5c9dd",
-      user: "6725137b042c314ec9f4e878",
-      type: "DEBIT",
-      status: "COMPLETED",
-      credits: "0",
-      trnRef: "Assessment  66c474e63a24b55de7510321",
-      description: "Debited for Assessment",
-      balance: "100",
-      createdAt: "2024-11-07T11:18:02.853Z",
-      updatedAt: "2024-11-07T11:18:02.853Z",
-    },
-    {
-      _id: "672b74af042c314ec9f5c5c8",
-      user: "6725137b042c314ec9f4e878",
-      type: "CREDIT",
-      status: "INITIAL",
-      credits: "200",
-      trnRef: "cs_test_a1jm5zTuViriPPNX9jAw1ycFHF0FjHCgp0qmZ29k93ipBz8PpDYfZTUhjQ",
-      description: "STRIPE - Credit purchase",
-      balance: "0",
-      createdAt: "2024-11-06T13:52:47.450Z",
-      updatedAt: "2024-11-06T13:52:47.450Z",
-    }
-  ]);
+const AllInvoicePage = () => {
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const token = localStorage.getItem('authToken');
+
+  // Use navigate hook to go back
+  const navigate = useNavigate();
+
+  const { transactions, loading, error } = useTransactions(token, page);
 
   const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -76,18 +61,49 @@ const  AllInvoicePage = () => {
       return ref.replace('Assessment', '').trim();
     }
     if (ref.startsWith('cs_test')) {
-      return ref.substring(0, 15) + '...'; // Truncate Stripe reference
+      return ref.substring(0, 15) + '...';
     }
     return ref;
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredTransactions = Array.isArray(transactions) 
+    ? transactions.filter((transaction) => {
+        const lowerCaseSearchQuery = searchQuery.toLowerCase();
+        return (
+          transaction.trnRef.toLowerCase().includes(lowerCaseSearchQuery) ||
+          transaction.description.toLowerCase().includes(lowerCaseSearchQuery)
+        );
+      })
+    : [];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex justify-center items-center text-red-500">
+        <p>{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-red-500 pt-6 pb-12">
+      <Header/>
+      <div className="bg-red-500 pt-20 pb-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <button 
             className="flex items-center gap-2 text-white/90 hover:text-white mb-4"
+            onClick={() => navigate(-1)}  // Navigate back to the previous page
             aria-label="Go back"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -114,6 +130,8 @@ const  AllInvoicePage = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
                     placeholder="Search by transaction ID or description..."
                     className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
@@ -134,46 +152,52 @@ const  AllInvoicePage = () => {
 
           {/* Transactions List */}
           <div className="divide-y divide-gray-100">
-            {transactions.map(transaction => (
-              <div 
-                key={transaction._id} 
-                className="p-4 sm:p-6 hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-gray-50 rounded-lg">
-                      {getTransactionIcon(transaction.type)}
+            {filteredTransactions.length > 0 ? (
+              filteredTransactions.map(transaction => (
+                <div 
+                  key={transaction._id} 
+                  className="p-4 sm:p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 bg-gray-50 rounded-lg">
+                        {getTransactionIcon(transaction.type)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-gray-900">
+                            {transaction.type === 'CREDIT' 
+                              ? `Added $${transaction.credits} Credits`
+                              : 'Used Credits for Assessment'}
+                          </span>
+                          <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(transaction.status)}`}>
+                            {transaction.status}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-500 mt-1">
+                          {transaction.description}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          ID: {formatTrnRef(transaction.trnRef)}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-900">
-                          {transaction.type === 'CREDIT' 
-                            ? `Added $${transaction.credits} Credits`
-                            : 'Used Credits for Assessment'}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(transaction.status)}`}>
-                          {transaction.status}
-                        </span>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-gray-900">
+                        {transaction.type === 'CREDIT' ? '+' : '-'}{transaction.credits} credits
                       </div>
                       <div className="text-sm text-gray-500 mt-1">
-                        {transaction.description}
+                        {formatDate(transaction.createdAt)}
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        ID: {formatTrnRef(transaction.trnRef)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">
-                      {transaction.type === 'CREDIT' ? '+' : '-'}{transaction.credits} credits
-                    </div>
-                    <div className="text-sm text-gray-500 mt-1">
-                      {formatDate(transaction.createdAt)}
                     </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="p-4 sm:p-6 text-gray-500">
+                No transactions found.
               </div>
-            ))}
+            )}
           </div>
 
           {/* Pagination */}

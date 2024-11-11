@@ -3,8 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import useSubmitAssessment from '../hooks/useSubmitAssessment';  // Import the custom hook
 import ReportGenerationModal from '../components/ReportGenerationModal';  // Import the modal component
 import { 
- Plus
+  Plus
 } from 'lucide-react';
+import Header from '../components/Header';
 const AssessmentQuiz = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -142,6 +143,7 @@ const AssessmentQuiz = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 min-h-screen flex flex-col">
+    <Header/>
       <div className="bg-white rounded-xl shadow-md p-8 mb-16 flex-grow">
         <div className="mb-8">
           <div className="mb-8">
@@ -178,7 +180,11 @@ const AssessmentQuiz = () => {
                 >
                   <div className="flex items-start p-4 gap-3">
                     <div className={`w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 relative transition-all duration-200
-                      ${isOptionSelected(option.text) ? 'bg-red-500 border-red-500' : 'border-gray-300'}`}></div>
+                      ${isOptionSelected(option.text) ? 'bg-red-500 border-red-500' : 'border-gray-300'}`}>
+                      {isOptionSelected(option.text) && (
+                        <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-lg">✔</span>
+                      )}
+                    </div>
                     <span className="text-gray-700 text-base leading-relaxed">{option.text}</span>
                   </div>
                 </div>
@@ -265,7 +271,7 @@ const AssessmentQuiz = () => {
                 {loading ? 'Submitting...' : 'Submit'}
               </button>
             )}
-           </div>
+          </div>
         </div>
       </div>
 

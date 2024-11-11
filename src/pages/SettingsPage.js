@@ -14,7 +14,7 @@ import { useLocation, useNavigate } from 'react-router-dom'; // Import useNaviga
 
 import EditProfileModal from '../components/EditProfileModal'; // Import your modal component
 import useUserProfile from '../hooks/useUserProfile'; // Import the custom hook
-
+import Header from '../components/Header';
 const SettingsPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,9 +64,11 @@ console.log(userData);
   }
 
   return (
+    <div>
+      <Header/>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-red-500 pt-6 pb-12">
+      <div className="bg-red-500 pt-20 pb-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <button 
             onClick={() => navigate(-1)} // Navigate back when clicked
@@ -204,6 +206,7 @@ console.log(userData);
         onClose={() => setIsModalOpen(false)}
         userData={userData} // Pass the user data to the modal
       />
+    </div>
     </div>
   );
 };

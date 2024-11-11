@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Search, 
   List, 
@@ -16,8 +16,7 @@ import {
 import { useNavigate } from 'react-router-dom'; 
 import { useAuth } from '../../hooks/AuthContext'; // Import useAuth
 
-function SearchPageWithDrawer() {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+function SearchPageWithDrawer({ setIsMenuOpen } ) {
   const navigate = useNavigate(); 
   const { authData, logout } = useAuth(); // Get auth data and logout function from context
 
@@ -46,12 +45,12 @@ function SearchPageWithDrawer() {
   ];
 
   const handleNavItemClick = (path, state = {}) => {
-    setIsDrawerOpen(false);
+    setIsMenuOpen(false);
     navigate(path, { state }); // Pass state when navigating
   };
 
   const handleAddCredits = () => {
-    setIsDrawerOpen(false);
+    setIsMenuOpen(false);
     navigate('/add-credits'); 
   };
 
@@ -62,17 +61,16 @@ function SearchPageWithDrawer() {
 
   return (
     <div className="bg-gray-50 relative">
-      {isDrawerOpen && (
         <div 
           className="fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity z-40"
-          onClick={() => setIsDrawerOpen(false)}
+          onClick={() => setIsMenuOpen(false)} 
         />
-      )}
+      
 
-      <div className={`fixed right-0 top-0 h-full w-96 bg-white shadow-2xl transform transition-transform duration-300 ease-out z-50 flex flex-col ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed right-0 top-0 h-full w-96 bg-white shadow-2xl transform transition-transform duration-300 ease-out z-50 flex flex-col ${setIsMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex justify-between items-center px-6 py-4">
           <h2 className="text-lg font-semibold text-gray-800">Account</h2>
-          <button onClick={() => setIsDrawerOpen(false)} className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded-full transition-colors">
+          <button onClick={() => setIsMenuOpen(false)}  className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded-full transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -144,14 +142,7 @@ function SearchPageWithDrawer() {
         </div>
       </div>
 
-      <div className="bg-red-500 pt-4 pb-4">
-        <div className="max-w-7xl mx-auto px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white"> Begin Assessments</h1>
-          <button onClick={() => setIsDrawerOpen(true)} className="p-2 rounded-full bg-white hover:bg-gray-100 transition-all">
-            <Menu size={24} className="text-red-500" />
-          </button>
-        </div>
-      </div>
+      
     </div>
   );
 }

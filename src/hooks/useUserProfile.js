@@ -18,7 +18,7 @@ const useUserProfile = () => {
         const response = await fetch('https://app.spiralreports.com/api/users/profile', {
           method: 'GET',
           headers: {
-            Authorization: `Bearer ${authData.access_token}`,
+            Authorization: `Bearer ${access_token}`,
           },
         });
         

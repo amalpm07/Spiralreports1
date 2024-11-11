@@ -6,24 +6,22 @@ import {
   MoreVertical,
   Share2,
   FileText,
-  RefreshCw,
-  Tag,
-  ChevronDown,
   Shield,
   Coins,
   Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import { useAuth } from '../hooks/AuthContext'; // Import useAuth
 import useAssessments from '../hooks/useAssessments'; // Import your custom hook
-
+import Header from '../components/Header';
 const AssessmentsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFramework, setSelectedFramework] = useState("all");
   const [selectedMaturity, setSelectedMaturity] = useState("all");
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState({});
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [assessmentToDelete, setAssessmentToDelete] = useState(null);
   
-  const { assessments, loading, error } = useAssessments(); // Using the custom hook to get the assessments
+  const { assessments, loading, error, deleteAssessment } = useAssessments(); // Using the custom hook to get the assessments
   const navigate = useNavigate(); // Initialize useNavigate hook
 
   const formatDate = (dateString) => {
@@ -69,11 +67,35 @@ const AssessmentsPage = () => {
     }));
   };
 
+  // Handle the delete confirmation
+  const handleDeleteConfirmation = (assessmentId) => {
+    setAssessmentToDelete(assessmentId);
+    setIsDeleting(true);
+  };
+
+  const handleCancelDelete = () => {
+    setAssessmentToDelete(null);
+    setIsDeleting(false);
+  };
+
+  const handleDelete = async () => {
+    if (assessmentToDelete) {
+      try {
+        await deleteAssessment(assessmentToDelete);
+        setAssessmentToDelete(null); // Reset state after deletion
+        setIsDeleting(false);
+      } catch (err) {
+        setIsDeleting(false);
+        console.error("Delete failed:", err);
+      }
+    }
+  };
+
   // Filter the assessments based on the selected filters
   const filteredAssessments = assessments.filter(assessment => {
     const matchesSearch = assessment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          assessment.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFramework = selectedFramework === "all" || assessment.framework === selectedFramework;
+    const matchesFramework = selectedFramework === "all" || assessment.compliance === selectedFramework;
     const matchesMaturity = selectedMaturity === "all" ||
       (selectedMaturity === "high" && assessment.maturity >= 80) ||
       (selectedMaturity === "medium" && assessment.maturity >= 60 && assessment.maturity < 80) ||
@@ -82,10 +104,33 @@ const AssessmentsPage = () => {
     return matchesSearch && matchesFramework && matchesMaturity;
   });
 
+  // New framework options
+  const frameworks = [
+    { id: 'iso27001', name: 'ISO 27001' },
+    { id: 'gdpr', name: 'GDPR' },
+    { id: 'hipaa', name: 'HIPAA' },
+    { id: 'pci', name: 'PCI DSS' },
+    { id: 'sox', name: 'Sarbanes-Oxley (SOX)' },
+    { id: 'nist', name: 'NIST Cybersecurity Framework' },
+    { id: 'isms', name: 'ISMS' },
+    { id: 'iso', name: 'ISO' },
+    { id: 'ssae18', name: 'SSAE 18' },
+    { id: 'soc2', name: 'SOC 2' },
+    { id: 'soc1', name: 'SOC 1' },
+    { id: 'infosec', name: 'Infosec' },
+    { id: 'dpia', name: 'DPIA' },
+    { id: 'dataProtection', name: 'Data Protection' },
+    { id: 'bia', name: 'BIA' },
+    { id: 'bcp', name: 'BCP' },
+    { id: 'dr', name: 'Disaster Recovery (DR)' },
+    { id: 'gcr', name: 'GCR' },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header/>
       {/* Header */}
-      <div className="bg-red-500 pt-6 pb-12">
+      <div className="bg-red-500 pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <button 
             className="flex items-center gap-2 text-white/90 hover:text-white mb-4"
@@ -122,9 +167,11 @@ const AssessmentsPage = () => {
                   onChange={(e) => setSelectedFramework(e.target.value)}
                 >
                   <option value="all">All Frameworks</option>
-                  <option value="ISO 27001">ISO 27001</option>
-                  <option value="GDPR">GDPR</option>
-                  <option value="NIST CSF">NIST CSF</option>
+                  {frameworks.map((framework) => (
+                    <option key={framework.id} value={framework.id}>
+                      {framework.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <select
@@ -150,7 +197,7 @@ const AssessmentsPage = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Assessment Details
+                    Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Framework & Tags
@@ -173,22 +220,13 @@ const AssessmentsPage = () => {
                 {filteredAssessments.map((assessment) => (
                   <tr key={assessment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{assessment.name}</div>
-                    
+                      <div className="text-sm font-medium text-gray-900">{assessment.name}</div>
                       <div className="text-sm text-gray-500">{assessment.title}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="mb-2 flex items-center gap-1.5">
                         <Shield className="w-3.5 h-3.5 text-gray-400" />
                         <span className="text-sm text-gray-900 uppercase">{assessment.compliance}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {assessment.subdomainScore.map((score, idx) => (
-                          <span key={idx} className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                           
-                            {score.subdomain}
-                          </span>
-                        ))}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -213,13 +251,6 @@ const AssessmentsPage = () => {
                           }`}
                         >
                           {assessment.maturity}%
-                        </span>
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getMaturityColor(
-                            assessment.maturity
-                          )}`}
-                        >
-                          {getMaturityLabel(assessment.maturity)}
                         </span>
                       </div>
                     </td>
@@ -246,7 +277,10 @@ const AssessmentsPage = () => {
                                 <FileText className="w-4 h-4" />
                                 Download PDF
                               </button>
-                              <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
+                              <button
+                                onClick={() => handleDeleteConfirmation(assessment.id)}
+                                className="w-full px-4 py-2 text-left bg-red-500 text-sm flex items-center gap-2"
+                              >
                                 <Trash2 className="w-4 h-4" />
                                 Delete Report
                               </button>
@@ -262,6 +296,29 @@ const AssessmentsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleting && (
+        <div className="fixed inset-0 flex items-center justify-center z-20 bg-gray-600 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Are you sure you want to delete this assessment?</h3>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={handleCancelDelete}
+                className="px-4 py-2 text-sm text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

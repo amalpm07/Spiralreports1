@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 // src/context/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // Use navigate in the context of the existing Router
@@ -71,10 +70,12 @@ export const AuthProvider = ({ children }) => {
           );
         } else {
           // Handle case where there's no new access token returned
+          console.error('No new access token returned, logging out...');
           logoutAndRedirect();
         }
       } else {
         // If refresh API call fails, log out and redirect to login page
+        console.error('Refresh token API failed, logging out...');
         logoutAndRedirect();
       }
     } catch (error) {
