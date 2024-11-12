@@ -10,7 +10,8 @@ import {
   Star,
   ArrowUpRight
 } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 const DashboardStats = ({ icon: Icon, label, value, trend }) => (
   <div className="bg-white rounded-lg p-6">
     <div className="flex flex-col gap-4">
@@ -104,9 +105,13 @@ const Dashboard = () => {
       icon: Star
     }
   ];
-
+  const navigate = useNavigate();
+  const handleStartAssessment = () => {
+    navigate('/assessment'); // Navigate to the assessment page
+  };
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header/>
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Stats Grid */}
@@ -193,10 +198,13 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-500 mb-6">
                   Begin a new assessment to evaluate your team's maturity.
                 </p>
-                <button className="w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-red-500 rounded-lg py-2.5 px-4 hover:bg-red-600 transition-colors">
-                  <Plus className="w-4 h-4" />
-                  Start Assessment
-                </button>
+                <button
+                onClick={handleStartAssessment} // Add the click handler
+                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-red-500 rounded-lg py-2.5 px-4 hover:bg-red-600 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Start Assessment
+              </button>
               </div>
             </div>
 

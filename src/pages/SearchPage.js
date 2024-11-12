@@ -10,13 +10,12 @@ function SearchPage() {
   const [savedAssessments, setSavedAssessments] = useState([]);
   const [assessments, setAssessments] = useState([]); // Initialize as an empty array
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { authData, refreshToken } = useAuth();
-  const location = useLocation(); // To access location.state for access token passed from signup
+  const { authData, setAuthData, refreshToken } = useAuth();
+    const location = useLocation(); // To access location.state for access token passed from signup
   const navigate = useNavigate(); // For navigation
 
   // Get the access token from either location state or authData
   const access_token = location.state?.access_token || authData?.accessToken;
-
   // Log access_token to see which one is being used
   console.log('Access Token:', access_token);
 
@@ -46,10 +45,11 @@ function SearchPage() {
           fetchAssessments();
         }
       };
-
+  
       checkTokenExpiry();
     }
-  }, [access_token]); // Re-run when access_token changes
+  }, [access_token, refreshToken]);  // Re-run when access_token changes
+   // Re-run when access_token changes
 
   // Function to check if the JWT token is expired
   const checkTokenExpiryFunction = (token) => {
@@ -72,36 +72,44 @@ function SearchPage() {
           'Content-Type': 'application/json',
         },
       });
-
-      if (!response.ok) {
+  
+      if (response.ok) {
+        const data = await response.json();
+        const formattedAssessments = data.data.results.map((assessment) => ({
+          id: assessment.id,
+          name: assessment.title,
+          tags: assessment.tags,
+          questionCount: assessment.questionCount,
+          completionCount: assessment.evaluationCount || 0,
+          duration: 'N/A',
+          credits: assessment.credReq || 0,
+        })).sort((a, b) => b.completionCount - a.completionCount);
+        
+        setAssessments(formattedAssessments);
+      } else if (response.status === 401) {
+        // If 401 Unauthorized, the token is invalid or expired
+        console.log('Access token expired or invalid, logging out...');
+        
+        // Log out the user and redirect to the login page
+        logoutAndRedirect();
+      } else {
         throw new Error('Failed to fetch assessments');
       }
-
-      const data = await response.json();
-      const formattedAssessments = data.data.results.map((assessment) => ({
-        id: assessment.id,
-        name: assessment.title,
-        tags: assessment.tags,
-        questionCount: assessment.questionCount,
-        completionCount: assessment.evaluationCount || 0,
-        duration: 'N/A',
-        credits: assessment.credReq || 0,
-      })).sort((a, b) => b.completionCount - a.completionCount);
-      
-      setAssessments(formattedAssessments);
     } catch (error) {
       console.error('Error fetching assessments:', error);
+      // You can show an error message to the user or handle it differently
     }
   };
+  
 
   // Helper function to log out and navigate to the login page
   const logoutAndRedirect = () => {
-    // Clear local data and state
+    setAuthData(null); // Clear authentication data
     localStorage.removeItem('authData');
-    setSavedAssessments([]);
-    setAssessments([]);
-    navigate('/login'); // Redirect to login page
+    navigate('/login'); // Redirect to login
   };
+  
+  
 
   // Filter assessments based on search query
   const filteredAssessments = assessments.filter((assessment) => {

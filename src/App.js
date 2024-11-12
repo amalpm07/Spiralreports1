@@ -15,10 +15,10 @@ import AssessmentQuiz from './pages/AssessmentQuiz';
 import PaymentCancelledScreen from './components/PaymentCancelledScreen';
 import PaymentFailedScreen from './components/PaymentFailedScreen';
 import PaymentSuccessScreen from './components/PaymentSuccessScreen';
-import Dashboard from './components/Dashboard';
+import Dashboard from './pages/Dashboard';
 import PasswordChangeScreen from './components/PasswordChangeScreen';
 import AllInvoicePage from './pages/AllInvoicePage';
-
+import SOC1Report from './pages/ReportPage'
 function App() {
   return (
     <AuthProvider>
@@ -38,6 +38,8 @@ function App() {
         <Route path='/dashboard' element={<ProtectedRoute component={Dashboard} />} />
         <Route path='/reset-password' element={<PasswordChangeScreen />} />
         <Route path='/invoices' element={<ProtectedRoute component={AllInvoicePage} />} />
+        <Route path='/report' element={<ProtectedRoute component={SOC1Report} />} />
+
       </Routes>
       <ToastNotifications />
       <ToastContainer /> {/* Include ToastContainer for notifications */}

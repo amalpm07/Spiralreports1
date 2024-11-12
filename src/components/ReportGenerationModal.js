@@ -14,8 +14,10 @@ const ReportGenerationModal = ({ setIsVisible }) => {
   }, []);
 
   const handleViewReport = () => {
-    console.log('Viewing report...');
-    setIsVisible(false);  // Close the modal
+    // Close the modal before navigating
+    setIsVisible(false);
+    // Navigate to the /report page
+    navigate('/report');
   };
 
   const handleGoToDashboard = () => {

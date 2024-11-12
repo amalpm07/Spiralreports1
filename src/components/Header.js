@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import SearchPageWithDrawer from '../components/sidebar/SearchPageWithDrawer';
 import { Menu } from 'lucide-react';
-import logo1 from '../assets/SpiralReports Logo White.jpg'
-import logo2 from '../assets/logoBlack.png'
+import logo1 from '../assets/SpiralReports Logo White.jpg';
+import logo2 from '../assets/logoBlack.png';
 import { useNavigate } from 'react-router-dom'; 
 
 const Header = () => {
@@ -130,9 +130,15 @@ const Header = () => {
       marginLeft: '0.5rem',
     },
   };
+
   const handleAddCreditsClick = () => {
     navigate('/add-credits');  // Navigate to the /add-credit page
   };
+
+  const handleLogoClick = () => {
+    navigate('/assessment');  // Navigate to the /assessment page when logo is clicked
+  };
+
   // Apply hover styles directly on the elements using state
   const getSearchBarHoverStyles = () => ({
     backgroundColor: scrolled ? 'rgba(0, 0, 0, 0.065)' : 'rgba(255, 255, 255, 0.2)',
@@ -151,14 +157,15 @@ const Header = () => {
       <div style={containerStyles}>
         {/* Logo */}
         <img
-  src={scrolled ? logo1 : logo2}
-  alt="Logo"
-  style={{
-    height: scrolled ? '30px' : '55px',  // Adjust height for scrolled and not scrolled states
-    width: scrolled ? 'auto' : 'auto',  // Maintain auto width, but you can also adjust width here if needed
-    transition: 'height 0.3s ease',  // Smooth transition for the height change
-  }}
-/>
+          src={scrolled ? logo1 : logo2}
+          alt="Logo"
+          style={{
+            height: scrolled ? '30px' : '55px',  // Adjust height for scrolled and not scrolled states
+            width: scrolled ? 'auto' : 'auto',  // Maintain auto width, but you can also adjust width here if needed
+            transition: 'height 0.3s ease',  // Smooth transition for the height change
+          }}
+          onClick={handleLogoClick} // Add onClick event handler for logo
+        />
 
         {/* Search Bar */}
         <div style={searchBarStyles.container}>
@@ -244,14 +251,13 @@ const Header = () => {
           </div>
 
           {/* Hamburger Menu */}
-          
-      <div className=" pt-4 pb-4">
-        <div className="max-w-7xl mx-auto px-8 flex justify-between items-center">
-          <button onClick={() => setIsMenuOpen(true)} className="p-2 rounded-full bg-white hover:bg-gray-100 transition-all">
-            <Menu size={24} className="text-red-500" />
-          </button>
-        </div>
-      </div>
+          <div className="pt-4 pb-4">
+            <div className="max-w-7xl mx-auto px-8 flex justify-between items-center">
+              <button onClick={() => setIsMenuOpen(true)} className="p-2 rounded-full bg-white hover:bg-gray-100 transition-all">
+                <Menu size={24} className="text-red-500" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       {isMenuOpen && <SearchPageWithDrawer setIsMenuOpen={setIsMenuOpen} />}

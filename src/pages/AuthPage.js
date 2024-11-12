@@ -130,7 +130,7 @@ function AuthPage() {
         </Link>
       </div>
       
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center p-20 mt-8">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           {/* Render the LoginForm or CreateAccountForm based on current route */}
           {isLoginPage ? (
