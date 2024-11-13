@@ -17,7 +17,6 @@ function SearchPage() {
   // Get the access token from either location state or authData
   const access_token = location.state?.access_token || authData?.accessToken;
   // Log access_token to see which one is being used
-  console.log('Access Token:', access_token);
 
   // Organize assessments into a 3x2 grid structure
   const toggleSave = (assessmentId) => {
@@ -107,8 +106,7 @@ function SearchPage() {
     setAuthData(null); // Clear authentication data
     localStorage.removeItem('authData');
     navigate('/login'); // Redirect to login
-  };
-  
+  };  
   
 
   // Filter assessments based on search query

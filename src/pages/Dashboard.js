@@ -110,10 +110,12 @@ const Dashboard = () => {
     navigate('/assessment'); // Navigate to the assessment page
   };
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       <Header/>
+    <div className="min-h-screen pt-20 bg-gray-50">
+      
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4  sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-4 lg:gap-6 mb-6 sm:mb-8">
           <div className="lg:flex-1">
@@ -233,6 +235,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

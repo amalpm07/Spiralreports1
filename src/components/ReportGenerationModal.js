@@ -1,33 +1,31 @@
-/* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from 'react';
-import {  useNavigate } from 'react-router-dom'; // Import useNavigate
+// ReportGenerationModal.js
+import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import useFetchReport from '../hooks/useFetchReport'; // Import the custom hook
 
-const ReportGenerationModal = ({ setIsVisible }) => {
-  const [isGenerating, setIsGenerating] = useState(true);
+const ReportGenerationModal = ({ setIsVisible, assessmentId }) => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Simulate a delay for generating the report (replace with actual API call)
-    setTimeout(() => {
-      setIsGenerating(false);  // Once report is "generated", set generating to false
-    }, 8000);
-  }, []);
+  
+  // Use the custom hook to fetch report status
+  const { isGenerating, error, reportData } = useFetchReport(assessmentId);
 
   const handleViewReport = () => {
     // Close the modal before navigating
     setIsVisible(false);
-    // Navigate to the /report page
-    navigate('/report');
+    // Navigate to the /report page and pass reportData via state
+    navigate('/report', { state: { reportData } });
   };
 
   const handleGoToDashboard = () => {
     console.log('Going to dashboard...');
     setIsVisible(false);  // Close the modal
   };
+
   const handleClick = () => {
-    // Navigate to the /invoices page
+    // Navigate to the /assessment page
     navigate('/assessment');
   };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl max-w-md w-full mx-4 overflow-hidden">
@@ -52,6 +50,9 @@ const ReportGenerationModal = ({ setIsVisible }) => {
               <p className="text-gray-500">Your assessment report has been generated and is ready to view.</p>
             </>
           )}
+
+          {/* Error message */}
+          {error && <p className="text-red-500">{error}</p>}
         </div>
 
         {/* Modal Actions */}

@@ -80,6 +80,7 @@ const RecommendationSection = ({ title, findings }) => {
       const riskOrder = { High: 1, Medium: 2, Low: 3 };
       return riskOrder[a.risk] - riskOrder[b.risk];
     });
+  console.log(findings);
   
     // Create a count for each risk level (High, Medium, Low)
     const riskCounts = {

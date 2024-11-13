@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import useSubmitAssessment from '../hooks/useSubmitAssessment';  // Import the custom hook
-import ReportGenerationModal from '../components/ReportGenerationModal';  // Import the modal component
-import { Plus,Check } from 'lucide-react';
+import useSubmitAssessment from '../hooks/useSubmitAssessment';  // Custom hook for submitting the assessment
+import ReportGenerationModal from '../components/ReportGenerationModal';  // Modal component
+import { Plus, Check } from 'lucide-react';
 import Header from '../components/Header';
 
 // ProgressBar Component
@@ -21,7 +21,6 @@ const ProgressBar = ({ progress }) => (
   </div>
 );
 
-
 const AssessmentQuiz = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -30,6 +29,7 @@ const AssessmentQuiz = () => {
   const [showToolsPage, setShowToolsPage] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false); // State to control modal visibility
+  const [assessmentId, setAssessmentId] = useState(null); // State to store assessment id
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -123,7 +123,7 @@ const AssessmentQuiz = () => {
   };
 
   // Use the custom hook
-  const { submitAssessment, loading, error, success } = useSubmitAssessment();
+  const { submitAssessment, loading } = useSubmitAssessment();
 
   const handleSubmit = async () => {
     const purpose = assessment?.purpose === 'personal' ? 'SELF' : assessment?.purpose === 'client' ? 'CLIENT' : 'UNKNOWN';
@@ -136,7 +136,7 @@ const AssessmentQuiz = () => {
         const selectedOptionsForQuestion = (selectedOptions[questionIndex] || []).map(optionText => {
           return question.options.find(option => option.text === optionText);
         });
-
+  
         return {
           question: question.question,
           considerScore: question.considerScore || true,
@@ -144,17 +144,23 @@ const AssessmentQuiz = () => {
         };
       }),
     };
-
+  
     try {
       // Submit the assessment and tools
-      await submitAssessment(assessmentData, tools, accessToken);
-      
-      // After submission, show the modal
+      const result = await submitAssessment(assessmentData, tools, accessToken);
+  
+      // Assuming the response has the structure mentioned, get the assessment ID from the result
+      const submittedAssessmentId = result.data.id
+      setAssessmentId(submittedAssessmentId); // Store the assessment ID
+  console.log(result);
+  
+      // Set modal visibility to true
       setIsModalVisible(true);
     } catch (error) {
       console.error('Error submitting evaluation:', error);
     }
   };
+  
 
   return (
     <div>
@@ -286,7 +292,7 @@ const AssessmentQuiz = () => {
         </div>
 
         {/* ReportGenerationModal will automatically appear after successful submission */}
-        {isModalVisible && <ReportGenerationModal setIsVisible={setIsModalVisible} />}
+        {isModalVisible && <ReportGenerationModal assessmentId={assessmentId} setIsVisible={setIsModalVisible} />}
       </div>
     </div>
   );
