@@ -43,7 +43,7 @@ const useFetchReport = (id) => {
     // Start by fetching the report status immediately
     fetchReportStatus();
 
-    // Poll every 3 minutes (180000 ms) and limit attempts
+    // Poll every 3 seconds (3000 ms) and limit attempts
     const interval = setInterval(() => {
       if (isGenerating && attempts < maxAttempts) {
         setAttempts((prev) => prev + 1);  // Increment the attempt counter
@@ -51,7 +51,7 @@ const useFetchReport = (id) => {
       } else {
         clearInterval(interval);  // Stop polling if generated or max attempts reached
       }
-    }, 180000); // 3 minutes
+    }, 3000); // 3 seconds
 
     // Cleanup the interval when the component is unmounted or when the report is generated
     return () => clearInterval(interval);
