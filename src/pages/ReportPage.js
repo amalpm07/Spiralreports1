@@ -7,6 +7,7 @@ import ToolsPage from './ToolsPage';
 // Data structures
 const assessmentData = {
   radarData: [
+   
     { category: 'Formal Guidance', currentScore: 2, targetScore: 12 },
     { category: 'Tracking and KPIs', currentScore: 2, targetScore: 12 },
     { category: 'Crisis Management', currentScore: 2, targetScore: 12 },
@@ -22,7 +23,12 @@ const SOC1Assessment = () => {
   const generation = reportData?.generation || reportData?.data?.generation;
   const findings = generation?.summary_of_findings || [];
   const intro = generation?.introduction || "";
-
+  const transformedData = generation?.summary_of_findings?.map(item => ({
+    category: item.title,                  // Use the title as the category
+    currentScore: item.score,              // Use score for the current score
+    targetScore: item.next_level_score    // Use next_level_score as the target score
+  }));
+  
   console.log("Report Data:", reportData);
   console.log("Findings:", findings);
 
@@ -159,7 +165,7 @@ const SOC1Assessment = () => {
         <div className="flex-1">
           <div className="mb-12">
             <h1 className="text-4xl font-bold mb-4">
-              Your total readiness for <span className="text-red-500">SOC 1</span> stands at <span className="text-red-500">0%</span>
+              Your total readiness for <span className="text-red-500">SOC 1</span> stands at <span className="text-red-500">{generation?.total_assessment_maturity?.overall_maturity_level || '0%'}</span>
             </h1>
             <p className="text-gray-600 max-w-4xl">
               {intro || 'No introduction available.'}
@@ -171,14 +177,16 @@ const SOC1Assessment = () => {
               <h2 className="text-2xl font-bold mt-4">Results derived from your responses to questions for each track</h2>
             </div>
             <ResponsiveContainer width="100%" height={400}>
-              <RadarChart data={assessmentData.radarData}>
-                <PolarGrid gridType="polygon" />
-                <PolarAngleAxis dataKey="category" tick={{ fill: '#4A5568', fontSize: 12 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 12]} />
-                <Radar name="Current Score" dataKey="currentScore" stroke="#63B3ED" fill="#63B3ED" fillOpacity={0.6} />
-                <Radar name="Target Score" dataKey="targetScore" stroke="#48BB78" fill="#48BB78" fillOpacity={0.2} />
-                <Legend />
-              </RadarChart>
+            
+            <RadarChart data={transformedData}>
+  <PolarGrid gridType="polygon" />
+  <PolarAngleAxis dataKey="category" tick={{ fill: '#4A5568', fontSize: 12 }} />
+  <PolarRadiusAxis angle={90} domain={[0, 12]} />
+  <Radar name="Current Score" dataKey="currentScore" stroke="#63B3ED" fill="#63B3ED" fillOpacity={0.6} />
+  <Radar name="Target Score" dataKey="targetScore" stroke="#48BB78" fill="#48BB78" fillOpacity={0.2} />
+  <Legend />
+</RadarChart>
+               
             </ResponsiveContainer>
           </div>
         </div>
@@ -189,7 +197,7 @@ const SOC1Assessment = () => {
               <div className="relative w-32 h-32">
                 <div className="absolute inset-0 rounded-full border-4 border-gray-100"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-4xl font-bold">0</span>
+                  <span className="text-4xl font-bold">{generation?.total_assessment_maturity?.overall_maturity_level || '0%'}</span>
                 </div>
               </div>
             </div>
@@ -197,7 +205,7 @@ const SOC1Assessment = () => {
               <h4 className="text-sm text-gray-600 mb-1">Readiness by category</h4>
               <p className="text-xs text-gray-500 mb-4">Your readiness from your responses</p>
               <div className="flex justify-between items-center border-t pt-4">
-                <span className="text-red-500 text-xl font-medium">0.00</span>
+                <span className="text-red-500 text-xl font-medium">{generation?.total_assessment_maturity?.overall_maturity_level || '0%'}</span>
                 <span className="text-gray-700">Governance and organization</span>
               </div>
             </div>

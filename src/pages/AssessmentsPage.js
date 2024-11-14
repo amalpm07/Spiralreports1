@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { Search, MoreVertical, Share2, FileText, ArrowLeft, Trash2, Shield, Coins } from 'lucide-react';
@@ -12,8 +13,8 @@ const AssessmentsPage = () => {
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState({});
     const [isDeleting, setIsDeleting] = useState(false);
     const [assessmentToDelete, setAssessmentToDelete] = useState(null);
-    const { assessments, loading, error: assessmentsError, deleteAssessment } = useAssessments();
-    const { error: reportError, isLoading: reportLoading, fetchReport } = useReport();
+    const { assessments, loading,  deleteAssessment } = useAssessments();
+    const {  isLoading: reportLoading, fetchReport } = useReport();
     const navigate = useNavigate();
 
     const formatDate = (dateString) => {
