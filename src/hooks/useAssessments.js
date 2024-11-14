@@ -14,7 +14,7 @@ const useAssessments = () => {
   useEffect(() => {
     const fetchAssessments = async () => {
       try {
-        const response = await fetch('https://app.spiralreports.com/api/evaluations?page=1&limit=10&orderBy=desc', {
+        const response = await fetch('https://app.spiralreports.com/api/evaluations?page=1&&orderBy=desc', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${access_token}`,

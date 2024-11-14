@@ -38,7 +38,8 @@ function App() {
         <Route path='/dashboard' element={<ProtectedRoute component={Dashboard} />} />
         <Route path='/reset-password' element={<PasswordChangeScreen />} />
         <Route path='/invoices' element={<ProtectedRoute component={AllInvoicePage} />} />
-        <Route path='/report' element={<ProtectedRoute component={SOC1Report} />} />
+        <Route path="/report/:assessmentId" element={<SOC1Report />} />
+        <Route path="/report" element={<SOC1Report />} />
 
       </Routes>
       <ToastNotifications />
