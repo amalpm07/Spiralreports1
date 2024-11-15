@@ -1,10 +1,6 @@
 import React from 'react';
-import { Infinity, Database, AlertCircle, Phone, Shield, BarChart3 } from 'lucide-react';
+import { Infinity, AlertCircle, Code } from 'lucide-react';
 
-
-
-
-// Section component for wrapping content with customizable background and padding
 const Section = ({ children, bgColor = "bg-white", className = "" }) => (
   <div className={`${bgColor} px-4 py-16 ${className}`}>
     <div className="max-w-4xl mx-auto">
@@ -13,7 +9,6 @@ const Section = ({ children, bgColor = "bg-white", className = "" }) => (
   </div>
 );
 
-// SectionHeader component to render section titles and subtitles
 const SectionHeader = ({ title, subtitle }) => (
   <div className="text-center">
     <Infinity className="w-12 h-12 mx-auto mb-4" aria-label="Infinity icon" />
@@ -22,7 +17,6 @@ const SectionHeader = ({ title, subtitle }) => (
   </div>
 );
 
-// BulletPoint component for rendering list items consistently
 const BulletPoint = ({ children }) => (
   <li className="flex items-start gap-3">
     <div className="mt-2">
@@ -32,76 +26,68 @@ const BulletPoint = ({ children }) => (
   </li>
 );
 
-// ToolCard component to display tool info, either current or recommended
-// ToolCard component to display tool info, either current or recommended
-const ToolCard = ({ tool, type }) => (
-  <div className="bg-gray-50 rounded-lg p-8 shadow-sm h-full">
-    <div className="flex items-center gap-4 mb-6">
-      <div className="p-2 bg-red-100 rounded-lg">
-        {/* Render icon directly if available */}
-        {tool.icon && <tool.icon className="w-6 h-6 text-red-500" />}
+const ToolCard = ({ tool }) => (
+  <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 relative">
+    <div className="absolute -top-3 right-6">
+      <span className="inline-block bg-red-50 px-4 py-1.5 rounded-full text-xs font-semibold text-red-500 tracking-wide">
+        {tool.tag || 'Tool'}
+      </span>
+    </div>
+    
+    <div className="flex items-start gap-5 mb-10">
+      <div className="p-3.5 bg-red-50 rounded-lg flex-shrink-0">
+        {tool.icon && <tool.icon className="w-7 h-7 text-red-500" />}
       </div>
-      <h3 className={`${type === 'current' ? 'text-2xl' : 'text-xl'} font-bold text-red-500`}>
-        {tool.name}
+      <h3 className="text-2xl font-semibold text-gray-900 leading-tight pt-2">
+        {tool.name || tool.product_name}
       </h3>
     </div>
-
-    {type === 'current' ? (
-      // Check if 'description' is an array and is not undefined
-      Array.isArray(tool.description) && tool.description.length > 0 ? (
-        <ul className="space-y-3">
-          {tool.description.map((desc, index) => (
-            // Use a unique key if possible, otherwise fall back to index
-            <BulletPoint key={desc || index}>{desc}</BulletPoint>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-700">No description available.</p>
-      )
-    ) : (
-      <div className="space-y-6">
-        <div>
-          <h4 className="text-red-500 font-medium mb-3">Suggestions</h4>
-          {/* Check if 'suggestions' is an array and is not undefined */}
-          {Array.isArray(tool.suggestions) && tool.suggestions.length > 0 ? (
-            <ul className="space-y-3">
-              {tool.suggestions.map((suggestion, index) => (
-                // Use a unique key if possible, otherwise fall back to index
-                <BulletPoint key={suggestion || index}>{suggestion}</BulletPoint>
-              ))}
-            </ul>
+    
+    <div className="space-y-8">
+      <div className="bg-gray-50 p-6 rounded-lg">
+        <h4 className="text-xs font-bold text-gray-900 mb-4 uppercase tracking-widest">
+          Key Features
+        </h4>
+        <ul className="space-y-4">
+          {(tool.examples || tool.recommendations)?.length > 0 ? (
+            (tool.examples || [tool.recommendations]).map((suggestion, index) => (
+              <li key={index} className="flex items-start gap-4">
+                <div className="mt-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                </div>
+                <p className="text-base text-gray-600 leading-relaxed">
+                  {suggestion}
+                </p>
+              </li>
+            ))
           ) : (
-            <p className="text-gray-700">No suggestions available.</p>
+            <p className="text-base text-gray-500 italic">No features available</p>
           )}
-        </div>
-        <div>
-          <h4 className="text-red-500 font-medium mb-3">Purpose</h4>
-          <p className="text-gray-700">{tool.purpose}</p>
-        </div>
+        </ul>
       </div>
-    )}
+      
+      <div>
+        <h4 className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-widest">
+          Overview
+        </h4>
+        <p className="text-base text-gray-600 leading-relaxed">
+          {tool.purpose || tool.description}
+        </p>
+      </div>
+    </div>
   </div>
 );
 
-
-
-// ToolsPage component, the main page layout
 const ToolsPage = ({ reportData }) => {
-  // Ensure reportData is defined before accessing its properties
   const generation = reportData?.generation || reportData?.data?.generation;
-
-  // Extract recommended cybersecurity products from the report data
   const recommendedTools = generation?.recommendations_for_cybersecurity_tools?.recommended_cybersecurity_products;
   const currentTools = generation?.recommendations_for_cybersecurity_tools?.current_tools;
-  console.log(currentTools);
-  
   const conclusion = generation?.conclusion;
 
   const noCurrentToolsMessage = "No tools currently in use";
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Section for current tools in use */}
       <Section bgColor="bg-red-500" className="text-white">
         <SectionHeader
           title="Tools Currently in Use"
@@ -110,54 +96,49 @@ const ToolsPage = ({ reportData }) => {
       </Section>
 
       <Section>
-  {/* Check if there are current tools */}
-  {Array.isArray(currentTools) && currentTools.length > 0 ? (
-    currentTools.map((tool) => (
-      <ToolCard
-        key={tool.tool_name} // Use the tool's name as the key if it's unique
-        tool={{
-          name: tool.tool_name,
-          description: tool.recommendations, // Use recommendations as the description
-          icon: AlertCircle, // You can choose an appropriate icon for this tool
-        }}
-        type="current"
-      />
-    ))
-  ) : (
-    // If no tools, display the fallback message
-    <div className="bg-gray-50 p-8 rounded-lg shadow-sm">
-      <p className="text-gray-700 text-lg">{noCurrentToolsMessage}</p>
-    </div>
-  )}
-</Section>
-
-      {/* Section for additional tool recommendations */}
-      <Section bgColor="bg-gray-900" className="text-white">
-        <SectionHeader title="Additional Tool Recommendations" />
+        {Array.isArray(currentTools) && currentTools.length > 0 ? (
+          currentTools.map((tool) => (
+            <ToolCard
+              key={tool.tool_name}
+              tool={{
+                name: tool.tool_name,
+                purpose: tool.recommendations,
+                icon: AlertCircle,
+                tag: "Current Tool"
+              }}
+            />
+          ))
+        ) : (
+          <div className="bg-gray-50 p-8 rounded-lg shadow-sm">
+            <p className="text-gray-700 text-lg">{noCurrentToolsMessage}</p>
+          </div>
+        )}
       </Section>
 
-      <Section>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {Array.isArray(recommendedTools) && recommendedTools.length > 0 ? (
-            recommendedTools.map((tool, index) => (
-              <ToolCard
-                key={index}
-                tool={{
-                  name: tool.product_name,
-                  suggestions: tool.examples || [],
-                  purpose: tool.purpose,
-                  icon: AlertCircle, // Modify this part to dynamically select icons based on the product
-                }}
-                type="recommended"
-              />
-            ))
-          ) : (
-            <p className="text-gray-700">No additional tool recommendations available.</p>
-          )}
+      <div className="bg-gray-900 text-white py-16 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <Infinity className="w-12 h-12 mx-auto mb-4" />
+          <h2 className="text-4xl font-bold mb-16">Additional Tool Recommendations</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+            {Array.isArray(recommendedTools) && recommendedTools.length > 0 ? (
+              recommendedTools.map((tool) => (
+                <ToolCard
+                  key={tool.id}
+                  tool={{
+                    ...tool,
+                    icon: Code,
+                    tag: "Recommended"
+                  }}
+                />
+              ))
+            ) : (
+              <p className="text-gray-700">No additional tool recommendations available.</p>
+            )}
+          </div>
         </div>
-      </Section>
+      </div>
 
-      {/* Section for total assessment maturity score */}
       <Section bgColor="bg-red-500" className="text-white">
         <div className="text-center">
           <Infinity className="w-12 h-12 mx-auto mb-6" aria-label="Infinity icon" />
@@ -166,35 +147,30 @@ const ToolsPage = ({ reportData }) => {
         </div>
       </Section>
 
-      {/* Section for threats */}
       <Section>
-        <SectionHeader title="List Of Threats" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16">
-          {
-            // Define the threats array outside JSX
-            (() => {
-              const threats = Array.isArray(generation?.list_of_threats)
-                ? generation?.list_of_threats
-                : [];
+        <div className="bg-white py-2 px-4">
+          <div className="max-w-7xl mx-auto text-center">
+            <Infinity className="w-12 h-12 mx-auto mb-4" />
+            <h2 className="text-4xl font-bold mb-16">List Of Threats</h2>
 
-              if (threats.length > 0) {
-                return threats.map((threat, index) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+              {Array.isArray(generation?.list_of_threats) && generation?.list_of_threats.length > 0 ? (
+                generation.list_of_threats.map((threat, index) => (
                   <div
                     key={index}
-                    className={`bg-gray-50 rounded-lg p-8 text-center ${index % 2 === 0 ? 'md:col-span-2' : ''}`}
+                    className="bg-gray-50 rounded-lg p-6 text-center h-full flex items-center justify-center"
                   >
-                    <p className="text-gray-800 text-lg">{threat}</p>
+                    <p className="text-gray-800 text-sm font-medium">{threat}</p>
                   </div>
-                ));
-              } else {
-                return <p className="text-gray-700">No threats listed.</p>;
-              }
-            })()
-          }
+                ))
+              ) : (
+                <p className="text-gray-700">No threats listed.</p>
+              )}
+            </div>
+          </div>
         </div>
       </Section>
 
-      {/* Conclusion Section with a call to action */}
       <div className="bg-red-500 relative">
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="text-white text-center mb-32">
@@ -208,18 +184,23 @@ const ToolsPage = ({ reportData }) => {
             <h3 className="text-gray-900 text-4xl font-bold mb-10">
               Want To Level Up Your Compliance?
             </h3>
-            <button className="bg-red-500 text-white px-10 py-5 rounded-full hover:bg-red-600 transition-all duration-200 font-medium text-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-              Schedule a call with us
-            </button>
+
+            <a
+              href="https://spiralreports.com/contact-us"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <button className="bg-red-500 text-white px-10 py-5 rounded-full hover:bg-red-600 transition-all duration-200 font-medium text-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                Schedule a call with us
+              </button>
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Spacer to prevent content from getting hidden under the fixed footer */}
       <div className="bg-white h-24" />
     </div>
   );
 };
-
 
 export default ToolsPage;

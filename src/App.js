@@ -19,9 +19,12 @@ import Dashboard from './pages/Dashboard';
 import PasswordChangeScreen from './components/PasswordChangeScreen';
 import AllInvoicePage from './pages/AllInvoicePage';
 import SOC1Report from './pages/ReportPage'
+import { UserProvider } from './context/UserContext';
 function App() {
   return (
+    
     <AuthProvider>
+      <UserProvider>
       <Routes>
         <Route path="/" element={<AuthRedirect />} />
         <Route path="/login" element={<AuthPage />} />
@@ -43,7 +46,8 @@ function App() {
 
       </Routes>
       <ToastNotifications />
-      <ToastContainer /> {/* Include ToastContainer for notifications */}
+      <ToastContainer />
+      </UserProvider> {/* Include ToastContainer for notifications */}
     </AuthProvider>
   );
 }

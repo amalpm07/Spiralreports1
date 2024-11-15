@@ -4,13 +4,19 @@ import { Menu } from 'lucide-react';
 import logo1 from '../assets/SpiralReports Logo White.jpg';
 import logo2 from '../assets/logoBlack.png';
 import { useNavigate } from 'react-router-dom'; 
+import { useUserContext } from '../context/UserContext';
+import { useAuth } from '../hooks/AuthContext';
 
 const Header = () => {
+  const { userProfile } = useUserContext(); 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [credits] = useState(100);
+
   const navigate = useNavigate();
 
+const { authData } = useAuth();
+
+console.log(authData);
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 0);
@@ -219,7 +225,7 @@ const Header = () => {
                   d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              {credits.toLocaleString()}
+              {authData.credits.toLocaleString()}
             </div>
             <div style={creditsButtonStyles.divider} />
             <button

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../components/ui/Button";
 import LoginForm from "../components/forms/LoginForm";
 import CreateAccountForm from "../components/forms/CreateAccountForm";
@@ -8,6 +8,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import OTPPopup from "../components/cards/OtpPopup"; 
 import { useAuth } from '../hooks/AuthContext'; 
+import useUserProfile from "../hooks/useUserProfile"; // Import the custom hook
 
 function AuthPage() {
   const { setAuthData } = useAuth(); 
@@ -20,6 +21,9 @@ function AuthPage() {
 
   // Check current URL path to determine which form to show
   const isLoginPage = location.pathname === "/login"; // true if we're on the login page
+
+  // Fetch user profile after OTP verification
+  const { userData, loading, error } = useUserProfile(); // Now using the custom hook
 
   const handleInputChange = (event) => {
     const { id, value } = event.target;
@@ -60,6 +64,7 @@ function AuthPage() {
   };
 
   const handleOtpSubmit = async (otp) => {
+    setIsOtpOpen(false); // Close the OTP popup immediately after submission
     try {
       const response = await fetch("https://app.spiralreports.com/api/auth/verify-otp-login", {
         method: "POST",
@@ -97,14 +102,13 @@ function AuthPage() {
 
       toast.success("OTP verification successful!", { position: "bottom-right" });
 
+      // Delay navigation to ensure OTP verification success
       setTimeout(() => {
         navigate("/assessment");
       }, 2000);
 
     } catch (error) {
       toast.error(error.message, { position: "bottom-right" });
-    } finally {
-      setIsOtpOpen(false);
     }
   };
 
@@ -116,6 +120,24 @@ function AuthPage() {
       navigate("/login"); // Navigate to login if we're on signup
     }
   };
+
+  // Handle case when user profile data is loaded
+  useEffect(() => {
+    if (userData) {
+      // Handle user data if needed after OTP verification or login
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(`Error: ${error}`, { position: "bottom-right" });
+    }
+  }, [error]);
+
+  // Show loading state while fetching user profile
+  if (loading) {
+    return <div>Loading user profile...</div>;
+  }
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
@@ -163,9 +185,9 @@ function AuthPage() {
 
       {/* OTP Popup */}
       <OTPPopup 
-      isOpen={isOtpOpen} 
-      onClose={() => setIsOtpOpen(false)} 
-      onSubmit={handleOtpSubmit} 
+        isOpen={isOtpOpen} 
+        onClose={() => setIsOtpOpen(false)} 
+        onSubmit={handleOtpSubmit} 
       />
 
       {/* Toast Container for notifications */}

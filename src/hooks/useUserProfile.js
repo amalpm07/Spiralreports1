@@ -1,18 +1,23 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+// src/hooks/useUserProfile.js
+
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext'; // To get access token
+import { useUserContext } from '../context/UserContext'; // Import the UserContext
 
 const useUserProfile = () => {
   const { authData } = useAuth(); // Get the access token from the AuthContext
-  const [userData, setUserData] = useState(null);
+  const { setUserProfile } = useUserContext(); // Set the user profile in the context
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const access_token = authData?.access_token || authData?.accessToken;
-  console.log(access_token);
-  
+
   useEffect(() => {
     const fetchUserProfile = async () => {
-       // Ensure token is available
+      if (!access_token) {
+        setLoading(false);
+        setError('Access token is missing');
+        return;
+      }
 
       try {
         const response = await fetch('https://app.spiralreports.com/api/users/profile', {
@@ -25,9 +30,9 @@ const useUserProfile = () => {
         const data = await response.json();
         
         if (response.ok) {
-          setUserData(data.data); // Set user data
+          setUserProfile(data.data); // Set user profile in context
         } else {
-          setError(data.message); // Set error message if the request fails
+          setError(data.message || 'Error fetching profile');
         }
       } catch (error) {
         setError('An error occurred while fetching user data');
@@ -37,9 +42,9 @@ const useUserProfile = () => {
     };
 
     fetchUserProfile();
-  }, [authData?.accessToken]); // Re-run the effect when accessToken changes
+  }, [access_token, setUserProfile]); // Re-run the effect when accessToken changes
 
-  return { userData, loading, error };
+  return { loading, error };
 };
 
 export default useUserProfile;
