@@ -13,6 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useAuth } from '../hooks/AuthContext';
+import useReport from '../hooks/useReport';
 
 const DashboardStats = ({ icon: Icon, label, value, trend }) => (
   <div className="bg-white rounded-lg p-6">
@@ -34,21 +35,23 @@ const DashboardStats = ({ icon: Icon, label, value, trend }) => (
   </div>
 );
 
-const AssessmentRow = ({ title, department, date, score, icon: Icon = Clock }) => {
-  // Format the date using toLocaleDateString
+const AssessmentRow = ({ id, title, department, date, score, icon: Icon = Clock, onViewReport }) => {
   const formattedDate = date ? new Date(date).toLocaleDateString('en-US', {
-    weekday: 'short',  // Optional: To include day of the week
+    weekday: 'short',
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  }) : null; // Only format if date exists
+  }) : null;
 
   return (
-    <div className="flex items-center py-4 hover:bg-gray-50 px-4 -mx-4">
+    <div 
+      className="flex items-center py-4 hover:bg-gray-50 px-4 -mx-4 cursor-pointer"
+      onClick={() => onViewReport(id)}
+    >
       <div className="p-2 bg-gray-100 rounded-lg mr-4">
         <Icon className="w-4 h-4 text-gray-500" />
       </div>
-      <div className="flex-1 min-w-0"> {/* Added min-w-0 for text truncation */}
+      <div className="flex-1 min-w-0">
         <div className="font-medium text-gray-900 truncate">{title}</div>
         <div className="text-sm text-gray-500 truncate">
           {department} {formattedDate && `• ${formattedDate}`}
@@ -64,15 +67,38 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { authData } = useAuth();
+  const { fetchReport } = useReport();
+  const [reportLoading, setReportLoading] = useState(false);
   
   const access_token = authData?.access_token || authData?.accessToken;
   const navigate = useNavigate();
   
   const handleStartAssessment = () => {
-    navigate('/assessment'); // Navigate to the assessment page
+    navigate('/assessment');
   };
 
-  // Fetch data from the API
+  const handleViewReport = async (assessmentId) => {
+    if (reportLoading) {
+      return;
+    }
+
+    setReportLoading(true);
+    try {
+      const reportData = await fetchReport(assessmentId);
+      if (reportData) {
+        navigate(`/report/${assessmentId}`, { state: { reportData } });
+      }
+    } catch (error) {
+      console.error('Error fetching report:', error);
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const handleViewAllAssessments = () => {
+    navigate('/assessmentsPage');
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -80,7 +106,7 @@ const Dashboard = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${access_token}`,  // Pass token in the header
+            'Authorization': `Bearer ${access_token}`,
           },
         });
 
@@ -90,17 +116,16 @@ const Dashboard = () => {
 
         const data = await response.json();
         setDashboardData(data);
-        setLoading(false);  // Set loading to false after data is fetched
+        setLoading(false);
       } catch (err) {
-        setError(err.message);  // Set error if the request fails
+        setError(err.message);
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);  // Empty dependency array to run only once when the component mounts
+  }, [access_token]);
 
-  // Render loading and error states
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -115,9 +140,7 @@ const Dashboard = () => {
     <div>
       <Header />
       <div className="min-h-screen pt-20 bg-gray-50">
-        {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-4 lg:gap-6 mb-6 sm:mb-8">
             <div className="lg:flex-1">
               <DashboardStats
@@ -142,15 +165,15 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Main Content Area */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Recent Assessments */}
               <div className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">Recent Assessments</h2>
-                  <button className="text-sm text-gray-600 hover:text-red-500">
+                  <button 
+                    onClick={handleViewAllAssessments}
+                    className="text-sm text-gray-600 hover:text-red-500"
+                  >
                     View All
                   </button>
                 </div>
@@ -158,16 +181,17 @@ const Dashboard = () => {
                   {recent_assessments?.map((assessment) => (
                     <AssessmentRow
                       key={assessment.id}
+                      id={assessment.id}
                       title={assessment.title}
                       department={assessment.department}
                       date={assessment.updatedAt}
                       score={assessment.maturity}
+                      onViewReport={handleViewReport}
                     />
                   ))}
                 </div>
               </div>
 
-              {/* Popular Assessments */}
               <div className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">Popular Assessments</h2>
@@ -179,19 +203,19 @@ const Dashboard = () => {
                   {popular_assessments?.map((assessment) => (
                     <AssessmentRow
                       key={assessment.id}
+                      id={assessment.id}
                       title={assessment.title}
                       department={assessment.department}
-                      score={assessment.avgMaturity} // No date for popular assessments
-                      icon={assessment.icon || Star} // Default to Star icon if not provided
+                      score={assessment.avgMaturity}
+                      icon={assessment.icon || Star}
+                      onViewReport={handleViewReport}
                     />
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Right Column */}
             <div className="space-y-6">
-              {/* Start Assessment Card */}
               <div className="bg-white rounded-lg p-6">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -204,7 +228,7 @@ const Dashboard = () => {
                     Begin a new assessment to evaluate your team's maturity.
                   </p>
                   <button
-                    onClick={handleStartAssessment} // Add the click handler
+                    onClick={handleStartAssessment}
                     className="w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-red-500 rounded-lg py-2.5 px-4 hover:bg-red-600 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
@@ -212,29 +236,6 @@ const Dashboard = () => {
                   </button>
                 </div>
               </div>
-
-              {/* Quick Actions */}
-              {/* <div className="bg-white rounded-lg p-6">
-                <h3 className="text-base font-semibold text-gray-900 mb-4">
-                  Quick Actions
-                </h3>
-                <div className="space-y-3">
-                  <button className="w-full flex items-center justify-between text-sm text-gray-600 border rounded-lg p-3 hover:border-red-200 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <ClipboardCheck className="w-4 h-4" />
-                      Templates
-                    </div>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                  <button className="w-full flex items-center justify-between text-sm text-gray-600 border rounded-lg p-3 hover:border-red-200 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4" />
-                      Analytics
-                    </div>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div> */}
             </div>
           </div>
         </div>

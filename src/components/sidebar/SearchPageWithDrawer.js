@@ -6,7 +6,7 @@ import {
   ChevronRight, 
   LogOut, 
   X, 
-  Menu, 
+   
   Settings, 
   CreditCard,
   FileText,
@@ -36,7 +36,7 @@ function SearchPageWithDrawer({ setIsMenuOpen }) {
 
   const navItems = [
     {icon: Home, label: "Dashboard", badge: null, path:'/dashboard'},
-    { icon: Search, label: "Search Assessments", badge: null, path: '/search' },
+    { icon: Search, label: "Search Assessments", badge: null, path: '/assessment' },
     { icon: List, label: "All Assessments", badge: null, path: '/assessmentsPage' },
     { icon: FileText, label: "Draft Assessments", badge: "3", path: '/drafts' },
     { icon: CreditCard, label: "Credit History", badge: null, path: '/credits' },
