@@ -20,9 +20,9 @@ const AddCreditsPage = ({ onClose }) => {
   const [error, setError] = useState(null);
 
   const creditPackages = [
-    { id: 1, credits: 50, price: 25, popular: false, savePercentage: 0 },
-    { id: 2, credits: 100, price: 45, popular: true, savePercentage: 10 },
-    { id: 3, credits: 200, price: 80, popular: false, savePercentage: 20 }
+    { id: 1, credits: 50, price: 50, popular: false, savePercentage: 0 },
+    { id: 2, credits: 100, price: 100, popular: true, savePercentage: 0 },
+    { id: 3, credits: 200, price: 200, popular: false, savePercentage: 0 }
   ];
 
   const { loading, error: apiError, checkoutUrl, transactionId, checkout } = usePaymentCheckout(); // Use the custom hook
@@ -35,8 +35,8 @@ const AddCreditsPage = ({ onClose }) => {
   };
 
   const handleDecrement = () => {
-    if (selectedCredits > 5) {
-      setSelectedCredits(prev => prev - 5);
+    if (selectedCredits > 1) {
+      setSelectedCredits(prev => prev - 1);
       setSelectedPackage(null);
     }
   };
@@ -69,12 +69,14 @@ const AddCreditsPage = ({ onClose }) => {
       window.location.href = checkoutUrl;
     }
   }, [checkoutUrl]); // This will trigger every time checkoutUrl changes
+  
   const handleBackClick = () => {
     navigate("/payment-cancel"); // Navigate to PaymentCancelPage when back is clicked
   };
+
+  // Update the price calculation logic: 1 credit = 1 dollar
   const calculatePrice = (credits) => {
-    const pkg = creditPackages.find(p => p.credits === credits);
-    return pkg ? pkg.price : (credits * 0.5).toFixed(2);
+    return credits; // 1 credit = 1 dollar, so price is equal to the number of credits
   };
 
   const navigate = useNavigate();
@@ -156,7 +158,7 @@ const AddCreditsPage = ({ onClose }) => {
               <button 
                 onClick={handleDecrement}
                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
-                disabled={selectedCredits <= 5}
+                disabled={selectedCredits <= 1}
                 aria-label="Decrease credits"
               >
                 <Minus className="w-4 h-4" />
@@ -179,7 +181,7 @@ const AddCreditsPage = ({ onClose }) => {
               </button>
             </div>
             <div className="mt-1.5 text-xs text-gray-500 text-center">
-              Adjust credits in increments of 5 (max 300)
+              Adjust credits in increments of 1 (max 300)
             </div>
           </div>
 

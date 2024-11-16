@@ -101,24 +101,7 @@ const RenderPieChart = memo(function RenderPieChart({ data, activeIndex, onHover
   );
 });
 
-const SnapshotSection = memo(({ findings }) => {
-  return (
-    <div className="max-w-7xl mx-auto px-8 py-16 bg-gray-50">
-      <div className="text-center mb-12">
-        <span className="text-2xl">∞</span>
-        <h2 className="text-3xl font-bold mt-4">Here's the latest SOC 1 snapshot,<br />tailored from your inputs!</h2>
-      </div>
-      <div className="grid grid-cols-2 gap-6">
-        {findings.map((item, index) => (
-          <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-red-500 font-medium mb-2">{item.title}</h3>
-            <p className="text-gray-600">{item.current_state}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-});
+
 
 const RecommendationSection = memo(({ title, findings = [], index = 0 }) => {
   const [hoveredRecommendation, setHoveredRecommendation] = useState(null);
@@ -213,60 +196,311 @@ const RecommendationSection = memo(({ title, findings = [], index = 0 }) => {
     </div>
   );
 });
-
-const Dashboard = memo(({ generation, transformedData, intro }) => (
-  <div className="max-w-7xl mx-auto px-8 pt-24 py-8">
-    <div className="flex gap-8">
-      <div className="flex-1">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">
-            Your total readiness for <span className="text-red-500">SOC 1</span> stands at <span className="text-red-500">{generation?.total_assessment_maturity?.overall_maturity_level || '0%'}</span>
-          </h1>
-          <p className="text-gray-600 max-w-4xl">
-            {intro || 'No introduction available.'}
-          </p>
+const SnapshotSection = memo(({ findings }) => {
+  return (
+    <div className="max-w-7xl mx-auto px-8 py-16">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center justify-center mb-6 p-4 bg-white rounded-full shadow-md border border-gray-200">
+          <span className="text-red-500 text-3xl font-bold">∞</span>
         </div>
-        <div className="mb-16">
-          <div className="text-center mb-8">
-            <span className="text-2xl">∞</span>
-            <h2 className="text-2xl font-bold mt-4">Results derived from your responses to questions for each track</h2>
-          </div>
-          <ResponsiveContainer width="100%" height={400}>
-            <RadarChart data={transformedData}>
-              <PolarGrid gridType="polygon" />
-              <PolarAngleAxis dataKey="category" tick={{ fill: '#4A5568', fontSize: 12 }} />
-              <PolarRadiusAxis angle={90} domain={[0, 12]} />
-              <Radar name="Current Score" dataKey="currentScore" stroke="#63B3ED" fill="#63B3ED" fillOpacity={0.6} />
-              <Radar name="Target Score" dataKey="targetScore" stroke="#48BB78" fill="#48BB78" fillOpacity={0.2} />
-              <Legend />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
+        <h2 className="text-3xl font-bold text-gray-800">
+          Here's the latest SOC 1 snapshot,
+          <br />
+          tailored from your inputs!
+        </h2>
+        <div className="w-16 h-1 mx-auto mt-4 bg-red-500 rounded"></div>
       </div>
-      <aside className="w-80 shrink-0">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Your Readiness Score</h3>
-          <div className="flex justify-center items-center mb-8">
-            <div className="relative w-32 h-32">
-              <div className="absolute inset-0 rounded-full border-4 border-gray-100"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-4xl font-bold">{generation?.total_assessment_maturity?.overall_maturity_level || '0%'}</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {findings.map((item, index) => (
+          <div
+            key={index}
+            className="bg-white p-6 rounded-lg shadow-sm transition-transform duration-200 hover:shadow-md hover:-translate-y-1"
+          >
+            <h3 className="text-red-500 font-semibold text-lg border-b border-gray-200 pb-2 mb-4">
+              {item.title}
+            </h3>
+            <p className="text-gray-600 text-sm">
+              {item.current_state}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+const CircleProgress = ({ percentage }) => {
+  const radius = 80;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <svg width="180" height="180" style={{ transform: 'rotate(-90deg)' }}>
+      <circle
+        cx="90"
+        cy="90"
+        r={radius}
+        fill="none"
+        stroke="#f3f4f6"
+        strokeWidth="12"
+      />
+      <circle
+        cx="90"
+        cy="90"
+        r={radius}
+        fill="none"
+        stroke="#EF4444"
+        strokeWidth="12"
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={strokeDashoffset}
+        style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+      />
+    </svg>
+  );
+};
+
+const Dashboard = memo(({ generation, transformedData, intro }) => {
+  const readinessScore = generation?.total_assessment_maturity?.overall_maturity_level || 0;
+  
+  const styles = {
+    container: {
+      maxWidth: '1280px',
+      margin: '0 auto',
+      padding: '96px 32px 32px',
+      background: 'linear-gradient(145deg, #f8fafc, #ffffff)',
+      minHeight: '100vh',
+    },
+    flexContainer: {
+      display: 'flex',
+      gap: '32px',
+      '@media (max-width: 1024px)': {
+        flexDirection: 'column',
+      },
+    },
+    mainContent: {
+      flex: 1,
+    },
+    headerSection: {
+      marginBottom: '48px',
+    },
+    title: {
+      fontSize: '36px',
+      fontWeight: '700',
+      marginBottom: '16px',
+      color: '#111827',
+    },
+    redText: {
+      color: '#EF4444',
+    },
+    description: {
+      color: '#4B5563',
+      maxWidth: '56rem',
+    },
+    chartSection: {
+      marginBottom: '64px',
+    },
+    chartHeader: {
+      textAlign: 'center',
+      marginBottom: '32px',
+    },
+    infinitySymbol: {
+      fontSize: '24px',
+    },
+    chartTitle: {
+      fontSize: '24px',
+      fontWeight: '700',
+      marginTop: '16px',
+    },
+    chartContainer: {
+      height: '400px',
+      width: '100%',
+    },
+    sidebar: {
+      width: '360px',
+      flexShrink: 0,
+      '@media (max-width: 1024px)': {
+        width: '100%',
+      },
+    },
+    card: {
+      background: '#ffffff',
+      borderRadius: '16px',
+      padding: '32px',
+      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+      border: '1px solid rgba(239, 68, 68, 0.1)',
+    },
+    cardHeader: {
+      textAlign: 'center',
+      marginBottom: '32px',
+    },
+    cardTitle: {
+      fontSize: '20px',
+      fontWeight: '600',
+      color: '#111827',
+      marginBottom: '8px',
+    },
+    cardSubtitle: {
+      fontSize: '14px',
+      color: '#6B7280',
+    },
+    progressContainer: {
+      position: 'relative',
+      width: '180px',
+      height: '180px',
+      margin: '0 auto 40px',
+    },
+    progressText: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      textAlign: 'center',
+    },
+    progressPercentage: {
+      fontSize: '32px',
+      fontWeight: '700',
+      color: '#111827',
+    },
+    progressLabel: {
+      fontSize: '14px',
+      color: '#6B7280',
+      marginTop: '4px',
+    },
+    divider: {
+      height: '1px',
+      background: 'linear-gradient(to right, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05))',
+      margin: '24px 0',
+    },
+    categoriesSection: {
+      padding: '0 8px',
+    },
+    categoriesHeader: {
+      marginBottom: '24px',
+    },
+    categoriesTitle: {
+      fontSize: '16px',
+      fontWeight: '600',
+      color: '#374151',
+      marginBottom: '4px',
+    },
+    categoriesSubtitle: {
+      fontSize: '13px',
+      color: '#6B7280',
+    },
+    categoryItem: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '16px',
+      marginBottom: '12px',
+      borderRadius: '12px',
+      background: 'linear-gradient(to right, rgba(239, 68, 68, 0.03), transparent)',
+      border: '1px solid rgba(239, 68, 68, 0.08)',
+    },
+    categoryLabel: {
+      fontSize: '14px',
+      color: '#4B5563',
+    },
+    categoryScore: {
+      fontSize: '18px',
+      fontWeight: '600',
+      color: '#EF4444',
+    },
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.flexContainer}>
+        <div style={styles.mainContent}>
+          <div style={styles.headerSection}>
+            <h1 style={styles.title}>
+              Your total readiness for <span style={styles.redText}>SOC 1</span> stands at{' '}
+              <span style={styles.redText}>{readinessScore}%</span>
+            </h1>
+            <p style={styles.description}>
+              {intro || 'No introduction available.'}
+            </p>
+          </div>
+          
+          <div style={styles.chartSection}>
+            <div style={styles.chartHeader}>
+              <span style={styles.infinitySymbol}>∞</span>
+              <h2 style={styles.chartTitle}>
+                Results derived from your responses to questions for each track
+              </h2>
+            </div>
+            <div style={styles.chartContainer}>
+              <ResponsiveContainer>
+                <RadarChart data={transformedData}>
+                  <PolarGrid gridType="polygon" />
+                  <PolarAngleAxis 
+                    dataKey="category" 
+                    tick={{ fill: '#4B5563', fontSize: 12 }} 
+                  />
+                  <PolarRadiusAxis angle={90} domain={[0, 12]} />
+                  <Radar 
+                    name="Current Score" 
+                    dataKey="currentScore" 
+                    stroke="#EF4444" 
+                    fill="#EF4444" 
+                    fillOpacity={0.6} 
+                  />
+                  <Radar 
+                    name="Target Score" 
+                    dataKey="targetScore" 
+                    stroke="#48BB78" 
+                    fill="#48BB78" 
+                    fillOpacity={0.2} 
+                  />
+                  <Legend />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        <aside style={styles.sidebar}>
+          <div style={styles.card}>
+            <div style={styles.cardHeader}>
+              <h3 style={styles.cardTitle}>Your Readiness Score</h3>
+              <p style={styles.cardSubtitle}>SOC 1 Assessment Progress</p>
+            </div>
+
+            <div style={styles.progressContainer}>
+              <CircleProgress percentage={readinessScore} />
+              <div style={styles.progressText}>
+                <div style={styles.progressPercentage}>{readinessScore}%</div>
+                <div style={styles.progressLabel}>Complete</div>
               </div>
             </div>
-          </div>
-          <div>
-            <h4 className="text-sm text-gray-600 mb-1">Readiness by category</h4>
-            <p className="text-xs text-gray-500 mb-4">Your readiness from your responses</p>
-            <div className="flex justify-between items-center border-t pt-4">
-              <span className="text-red-500 text-xl font-medium">{generation?.total_assessment_maturity?.overall_maturity_level || '0%'}</span>
-              <span className="text-gray-700">Governance and organization</span>
+
+            <div style={styles.divider} />
+
+            <div style={styles.categoriesSection}>
+              <div style={styles.categoriesHeader}>
+                <h4 style={styles.categoriesTitle}>Readiness by category</h4>
+                <p style={styles.categoriesSubtitle}>
+                  Your readiness from your responses
+                </p>
+              </div>
+
+              {transformedData?.map((category, index) => (
+                <div key={index} style={styles.categoryItem}>
+                  <span style={styles.categoryLabel}>
+                    {category.category}
+                  </span>
+                  <span style={styles.categoryScore}>
+                    {category.currentScore}%
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      </div>
     </div>
-  </div>
-));
+  );
+});
 
 const SOC1Assessment = () => {
   const location = useLocation();

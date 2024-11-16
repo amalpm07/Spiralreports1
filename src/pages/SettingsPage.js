@@ -114,27 +114,6 @@ console.log(userData);
             </div>
           </div>
 
-          {/* Payment Methods */}
-          <div className="p-4 sm:p-6">
-            <h2 className="text-sm font-semibold text-gray-800 mb-4">Payment Methods</h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border rounded-lg p-3">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">•••• 4242</div>
-                    <div className="text-xs text-gray-500">Expires 12/24</div>
-                  </div>
-                </div>
-                <span className="text-xs py-1 px-2 bg-green-100 text-green-700 rounded">Default</span>
-              </div>
-              <button className="w-full flex items-center justify-center gap-2 text-sm text-gray-600 border border-dashed rounded-lg p-3 hover:text-red-500 hover:border-red-500">
-                <Plus className="w-4 h-4" />
-                Add Payment Method
-              </button>
-            </div>
-          </div>
-
           {/* Billing Overview */}
           <div className="p-4 sm:p-6">
             <h2 className="text-sm font-semibold text-gray-800 mb-4">Billing</h2>

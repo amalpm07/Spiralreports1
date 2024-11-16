@@ -45,9 +45,9 @@ const ToolCard = ({ tool }) => (
     
     <div className="space-y-8">
       <div className="bg-gray-50 p-6 rounded-lg">
-        <h4 className="text-xs font-bold text-gray-900 mb-4 uppercase tracking-widest">
+        {/* <h4 className="text-xs font-bold text-gray-900 mb-4 uppercase tracking-widest">
           Key Features
-        </h4>
+        </h4> */}
         <ul className="space-y-4">
           {(tool.examples || tool.recommendations)?.length > 0 ? (
             (tool.examples || [tool.recommendations]).map((suggestion, index) => (
@@ -120,8 +120,8 @@ const ToolsPage = ({ reportData }) => {
           <Infinity className="w-12 h-12 mx-auto mb-4" />
           <h2 className="text-4xl font-bold mb-16">Additional Tool Recommendations</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-            {Array.isArray(recommendedTools) && recommendedTools.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 text-left">        
+                 {Array.isArray(recommendedTools) && recommendedTools.length > 0 ? (
               recommendedTools.map((tool) => (
                 <ToolCard
                   key={tool.id}
@@ -158,7 +158,7 @@ const ToolsPage = ({ reportData }) => {
                 generation.list_of_threats.map((threat, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 rounded-lg p-6 text-center h-full flex items-center justify-center"
+                    className="bg-gray-50 rounded-lg p-6 text-left h-full flex items-center justify-center"
                   >
                     <p className="text-gray-800 text-sm font-medium">{threat}</p>
                   </div>
