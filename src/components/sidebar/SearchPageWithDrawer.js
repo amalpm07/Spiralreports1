@@ -9,7 +9,7 @@ import {
    
   Settings, 
   CreditCard,
-  FileText,
+ 
   User,
   Home
 } from 'lucide-react';

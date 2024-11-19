@@ -69,7 +69,7 @@ const EditProfileModal = ({ isOpen, onClose, userData }) => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const { updateProfile, isLoading: apiLoading, error } = useUpdateProfile();  // Custom hook for profile update
+  const { updateProfile, isLoading: apiLoading,  } = useUpdateProfile();  // Custom hook for profile update
 
   useEffect(() => {
     setFormData(userData);

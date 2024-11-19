@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from "../components/ui/Button";
-import { FiSearch } from "react-icons/fi"; 
 import log from '../assets/SpiralReports Logo White.jpg'; 
 import { Link } from 'react-router-dom'; 
 import SearchBar from '../components/cards/SearchBar'; // Import the SearchBar

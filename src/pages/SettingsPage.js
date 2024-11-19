@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  CreditCard, 
+
   Clock, 
   User,
   Receipt,
   ChevronRight,
-  Plus,
   Building2,
   LogOut,
   ArrowLeft
