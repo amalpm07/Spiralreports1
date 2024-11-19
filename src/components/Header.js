@@ -4,19 +4,16 @@ import { Menu } from 'lucide-react';
 import logo1 from '../assets/SpiralReports Logo White.jpg';
 import logo2 from '../assets/logoBlack.png';
 import { useNavigate } from 'react-router-dom'; 
-import { useUserContext } from '../context/UserContext';
 import { useAuth } from '../hooks/AuthContext';
-
 const Header = () => {
-  const { userProfile } = useUserContext(); 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const navigate = useNavigate();
-
-const { authData } = useAuth();
-
-console.log(authData);
+  const { authData } = useAuth(); // Destructure authData from useAuth
+  console.log(authData);
+  
+  
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 0);
@@ -122,34 +119,15 @@ console.log(authData);
     },
   };
 
-  const hamburgerStyles = {
-    button: {
-      padding: '0.5rem',
-      backgroundColor: 'transparent',
-      border: 'none',
-      cursor: 'pointer',
-      color: scrolled ? '#1f2937' : '#ffffff',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: 'transform 0.2s ease',
-      marginLeft: '0.5rem',
-    },
-  };
-
   const handleAddCreditsClick = () => {
     navigate('/add-credits');  // Navigate to the /add-credit page
   };
 
   const handleLogoClick = () => {
-    navigate('/assessment');  // Navigate to the /assessment page when logo is clicked
+    navigate('/dashboard');  // Navigate to the /dashboard page when logo is clicked
   };
 
   // Apply hover styles directly on the elements using state
-  const getSearchBarHoverStyles = () => ({
-    backgroundColor: scrolled ? 'rgba(0, 0, 0, 0.065)' : 'rgba(255, 255, 255, 0.2)',
-  });
-
   const getCreditsHoverStyles = () => ({
     backgroundColor: scrolled ? 'rgba(0, 0, 0, 0.065)' : 'rgba(255, 255, 255, 0.2)',
   });
@@ -157,6 +135,11 @@ console.log(authData);
   const getAddButtonHoverStyles = () => ({
     backgroundColor: scrolled ? 'rgba(0, 0, 0, 0.065)' : 'rgba(255, 255, 255, 0.1)',
   });
+
+  // Check if authData is loaded
+  if (!authData) {
+    return <div>Loading...</div>;  // You can add a loading spinner here if needed
+  }
 
   return (
     <nav style={navStyles}>
@@ -225,8 +208,9 @@ console.log(authData);
                   d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              {authData.credits.toLocaleString()}
-            </div>
+              {/* Safely access credits and fallback to 0 if not available */}
+              {(authData && (authData.credits || authData.user?.credits)) ? (authData.credits || authData.user?.credits).toLocaleString() : '0'}
+              </div>
             <div style={creditsButtonStyles.divider} />
             <button
               onClick={handleAddCreditsClick}

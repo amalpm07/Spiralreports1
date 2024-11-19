@@ -48,7 +48,7 @@ const CreateAccountForm = () => {
     confirmPassword: '',
     workRole: '',
     otherWorkRole: '',
-    country: '', // New state to capture country
+    country: '', // Ensure country is included in state
   });
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -71,8 +71,8 @@ const CreateAccountForm = () => {
       setErrorMessage('Email is required');
       return;
     }
-    if (step === 2 && (!formData.firstName || !formData.lastName)) {
-      setErrorMessage('First name and last name are required');
+    if (step === 2 && (!formData.firstName || !formData.lastName || !formData.country)) {
+      setErrorMessage('First name, last name, and country are required');
       return;
     }
     if (step === 2 && !validatePhoneNumber(formData.phone)) {
@@ -91,7 +91,13 @@ const CreateAccountForm = () => {
   const handleSignup = async (event) => {
     event.preventDefault();
     setErrorMessage('');
-  
+
+    // Check that country is filled in
+    if (!formData.country) {
+      setErrorMessage('Country is required');
+      return;
+    }
+
     try {
       const response = await fetch('https://app.spiralreports.com/api/users/signup', {
         method: 'POST',
@@ -103,34 +109,33 @@ const CreateAccountForm = () => {
           email,
         }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Signup failed');
       }
-  
+
       const data = await response.json();
       const { access_token, refresh_token, user } = data.data; // Access data inside the response
-  console.log(access_token);
-  
+      console.log(access_token);
+
       // Store user data and tokens in context (using the login function from useAuth)
       login({ access_token, refresh_token, user });
-  
+
       // After login, navigate to the assessment page and pass the user data and tokens
-      navigate('/assessment', {
+      navigate('/dashboard', {
         state: {
           user,            // Pass the user object
           access_token,    // Pass the access token
           refresh_token,   // Pass the refresh token
         },
       });
-  
+
     } catch (error) {
       setErrorMessage(error.message);
     }
   };
-  
-  
+
   return (
     <div className="flex flex-col space-y-2 text-center">
       <h1 className="text-2xl font-semibold tracking-tight">Create an Account</h1>

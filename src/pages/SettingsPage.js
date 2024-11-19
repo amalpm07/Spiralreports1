@@ -15,18 +15,19 @@ import { useLocation, useNavigate } from 'react-router-dom'; // Import useNaviga
 import EditProfileModal from '../components/EditProfileModal'; // Import your modal component
 import useUserProfile from '../hooks/useUserProfile'; // Import the custom hook
 import Header from '../components/Header';
+import { useAuth } from '../hooks/AuthContext';
+
 const SettingsPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
+  const { authData ,logout} = useAuth(); // Destructure authData from useAuth
+  console.log(authData);
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
 
   // Fetch the user data using the custom hook
-  const { userData, loading, error } = useUserProfile();
-console.log(userData);
-
+  const { userProfile, loading, error } = useUserProfile();
   // If user data is available, use it; otherwise, fall back to location state or defaults
-  const { firstName, email, credits, profileImage } = userData || location.state || {};
+  const { credits, profileImage } = userProfile || location.state || authData?.user || {}; 
 
   // Default transactions for display (if needed)
   const [transactions] = useState([
@@ -41,6 +42,10 @@ console.log(userData);
       month: 'short',
       day: 'numeric'
     });
+  };
+  const handleLogout = () => {
+    logout(); // Call the logout function from useAuth
+    navigate('/login'); // Navigate to the login page
   };
   const handleClick = () => {
     // Navigate to the /invoices page
@@ -89,15 +94,19 @@ console.log(userData);
           <div className="p-4 sm:p-6">
             <h2 className="text-sm font-semibold text-gray-800 mb-4">Profile</h2>
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  {profileImage ? <img src={profileImage} alt="Profile" className="w-10 h-10 rounded-full" /> : <User className="w-5 h-5 text-gray-500" />}
-                </div>
-                <div>
-                  <div className="font-medium text-gray-900">{firstName || 'Guest User'}</div>
-                  <div className="text-sm text-gray-500">{email || 'guest@example.com'}</div>
-                </div>
-              </div>
+            <div className="flex items-center gap-3">
+    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+      {profileImage ? <img src={profileImage} alt="Profile" className="w-10 h-10 rounded-full" /> : <User className="w-5 h-5 text-gray-500" />}
+    </div>
+    <div>
+      <div className="font-medium text-gray-900">
+        {authData?.user?.firstName || authData?.firstName || 'Guest User'}
+      </div>
+      <div className="text-sm text-gray-500">
+        {authData?.user?.email || authData?.email || 'guest@example.com'}
+      </div>
+    </div>
+  </div>
               <button
                 onClick={() => setIsModalOpen(true)} // Open the modal on click
                 className="text-sm text-gray-600 hover:text-red-500"
@@ -171,7 +180,8 @@ console.log(userData);
 
           {/* Logout */}
           <div className="p-4 sm:p-6">
-            <button className="w-full flex items-center justify-center gap-2 text-red-600 hover:text-red-700">
+            <button  className="w-full flex items-center justify-center gap-2 text-red-600 hover:text-red-700"
+            onClick={handleLogout}>
               <LogOut className="w-4 h-4" />
               <span>Sign Out</span>
             </button>
@@ -181,10 +191,10 @@ console.log(userData);
 
       {/* Edit Profile Modal */}
       <EditProfileModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        userData={userData} // Pass the user data to the modal
-      />
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  userData={userProfile || {}} // Provide empty object as fallback
+/>
     </div>
     </div>
   );

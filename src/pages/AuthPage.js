@@ -104,7 +104,7 @@ function AuthPage() {
 
       // Delay navigation to ensure OTP verification success
       setTimeout(() => {
-        navigate("/assessment");
+        navigate("/dashboard");
       }, 2000);
 
     } catch (error) {

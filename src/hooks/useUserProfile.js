@@ -1,12 +1,11 @@
 // src/hooks/useUserProfile.js
-
 import { useState, useEffect } from 'react';
-import { useAuth } from './AuthContext'; // To get access token
-import { useUserContext } from '../context/UserContext'; // Import the UserContext
+import { useAuth } from './AuthContext';
+import { useUserContext } from '../context/UserContext';
 
 const useUserProfile = () => {
-  const { authData } = useAuth(); // Get the access token from the AuthContext
-  const { setUserProfile } = useUserContext(); // Set the user profile in the context
+  const { authData } = useAuth();
+  const { setUserProfile, userProfile } = useUserContext(); // Assuming you have userProfile in context
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const access_token = authData?.access_token || authData?.accessToken;
@@ -26,11 +25,11 @@ const useUserProfile = () => {
             Authorization: `Bearer ${access_token}`,
           },
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
-          setUserProfile(data.data); // Set user profile in context
+          setUserProfile(data.data);  // Store the fetched profile in context
         } else {
           setError(data.message || 'Error fetching profile');
         }
@@ -42,9 +41,9 @@ const useUserProfile = () => {
     };
 
     fetchUserProfile();
-  }, [access_token, setUserProfile]); // Re-run the effect when accessToken changes
+  }, [access_token, setUserProfile]);
 
-  return { loading, error };
+  return { userProfile, loading, error };
 };
 
 export default useUserProfile;

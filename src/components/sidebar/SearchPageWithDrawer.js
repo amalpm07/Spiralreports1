@@ -38,7 +38,7 @@ function SearchPageWithDrawer({ setIsMenuOpen }) {
     {icon: Home, label: "Dashboard", badge: null, path:'/dashboard'},
     { icon: Search, label: "Search Assessments", badge: null, path: '/assessment' },
     { icon: List, label: "All Assessments", badge: null, path: '/assessmentsPage' },
-    { icon: FileText, label: "Draft Assessments", badge: "3", path: '/drafts' },
+    // { icon: FileText, label: "Draft Assessments", badge: "3", path: '/drafts' },
     { icon: CreditCard, label: "Credit History", badge: null, path: '/credits' },
     { icon: User, label: "Settings", badge: null, path: '/settings' }, // Added path for Settings
   ];

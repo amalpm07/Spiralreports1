@@ -5,7 +5,7 @@ import {
   Clock,
   PlayCircle,
   TrendingUp,
-  ChevronRight,
+  
   Plus,
   Star,
   ArrowUpRight

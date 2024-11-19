@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { Search, ArrowRight } from 'lucide-react';
 import AssessmentCard from '../components/cards/AssessmentCard';
-import SearchPageWithDrawer from '../components/sidebar/SearchPageWithDrawer';
 import { useAuth } from '../hooks/AuthContext';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,12 +12,13 @@ function SearchPage() {
   const [assessments, setAssessments] = useState([]); // Initialize as an empty array
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { authData, setAuthData, refreshToken } = useAuth();
-    const location = useLocation(); // To access location.state for access token passed from signup
   const navigate = useNavigate(); // For navigation
+console.log(authData.access_token);
 
   // Get the access token from either location state or authData
-  const access_token = location.state?.access_token || authData?.accessToken;
+  const access_token = authData.access_token||authData?.accessToken;
   // Log access_token to see which one is being used
+
 
   // Organize assessments into a 3x2 grid structure
   const toggleSave = (assessmentId) => {
